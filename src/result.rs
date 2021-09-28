@@ -8,6 +8,7 @@ pub struct Res {
 }
 
 impl Res {
+    /// Empty set.
     pub fn new() -> Self {
         Res {
             list: Vec::new(),
@@ -17,12 +18,14 @@ impl Res {
         }
     }
 
+    /// Add one result to a set
     pub fn append(&mut self, v: i32) -> &Self {
         self.list.push(v);
         self.sum += v;
         self
     }
 
+    /// Merge two sets.
     pub fn merge(&mut self, r: &Res) -> &Self {
         for e in &r.list {
             self.list.push(*e);
@@ -32,6 +35,7 @@ impl Res {
         self
     }
 
+    /// Do we have a "natural" result?
     pub fn natural(&self) -> bool {
         self.list.len() == 1 && &self.sum == &self.size
     }
