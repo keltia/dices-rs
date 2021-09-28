@@ -1,9 +1,13 @@
 
 #[derive(Debug,Eq, PartialEq)]
 pub struct Res {
+    /// Store all the rolled dices
     pub list: Vec<i32>,
+    /// Sum of all dices
     pub sum: i32,
+    /// If there is a malus/bonus to apply
     pub bonus: i32,
+    /// Assume all same dices
     pub size: i32,
 }
 
