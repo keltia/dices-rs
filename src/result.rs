@@ -101,7 +101,7 @@ mod tests {
             size: 6,
         };
 
-        assert_eq!(false, a.natural());
+        assert!(!a.natural());
 
         let b = Res {
             list: vec![6],
