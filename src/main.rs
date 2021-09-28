@@ -1,18 +1,38 @@
-use clap::{AppSettings, Clap};
+use std::env;
+use std::path::PathBuf;
+
+use shelp::{Repl, Color};
+use home::home_dir;
 
 mod dice;
 mod roll;
+mod result;
 
-/// Help message
-#[derive(Debug, Clap)]
-#[clap(name = "dices-rs", about = "Small dice utility.")]
-#[clap(version = "0.1.0")]
-#[clap(setting = AppSettings::ColoredHelp)]
-struct Opts {}
-
+use crate::result::*;
 
 fn main() {
-    let opts = Opts::parse();
+    let key = "HOME";
+    let home = match env::var(key) {
+        Ok(val) => val,
+        Err(e) => "no HOME".to_string(),
+    };
 
     println!("Hello, world!");
+
+    let r = Res::new();
+
+    println!("{:?}", r);
+
+    let hist: PathBuf =
+        [home, ".config".to_string(), "easctl".to_string(), "history".to_string()]
+            .iter()
+            .collect();
+
+    let mut repl = Repl::newd("EAS> ", ". ", Some(hist));
+
+    loop {
+        let cmd = repl.next(Color::Black).unwrap();
+
+        println!("cmd={}", cmd);
+    }
 }
