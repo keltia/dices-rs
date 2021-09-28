@@ -25,11 +25,9 @@ impl Res {
         self
     }
 
-    /// Merge two sets.
-    pub fn merge(&mut self, r: &Res) -> &Self {
-        for e in &r.list {
-            self.list.push(*e);
-        }
+    /// Merge two sets a & b.  b is empty afterwards.
+    pub fn merge(&mut self, r: &mut Res) -> &Self {
+        self.list.append(&mut r.list);
         self.sum += r.sum;
         self.bonus += r.bonus;
         self
