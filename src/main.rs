@@ -11,11 +11,8 @@ mod result;
 use crate::result::*;
 
 fn main() {
-    let key = "HOME";
-    let home = match env::var(key) {
-        Ok(val) => val,
-        Err(e) => "no HOME".to_string(),
-    };
+
+    let home = home_dir().unwrap();
 
     println!("Hello, world!");
 
@@ -24,9 +21,13 @@ fn main() {
     println!("{:?}", r);
 
     let hist: PathBuf =
-        [home, ".config".to_string(), "easctl".to_string(), "history".to_string()]
-            .iter()
-            .collect();
+        [home,
+            PathBuf::from(".config"),
+            PathBuf::from("easctl"),
+            PathBuf::from("history")
+        ]
+        .iter()
+        .collect();
 
     let mut repl = Repl::newd("EAS> ", ". ", Some(hist));
 
