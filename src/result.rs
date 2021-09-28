@@ -1,5 +1,5 @@
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug,Eq, PartialEq)]
 pub struct Res {
     pub list: Vec<i32>,
     pub sum: i32,
@@ -61,6 +61,35 @@ mod tests {
 
         let r = a.append(2);
         assert_eq!(&b, r);
+    }
+
+    #[test]
+    fn test_merge() {
+        let mut a = Res {
+            list: vec![1],
+            sum: 1,
+            bonus: 0,
+            size: 6,
+        };
+
+        let mut b = Res {
+            list: vec![1, 2],
+            sum: 3,
+            bonus: 0,
+            size: 6,
+        };
+
+        let r = Res {
+            list: vec![1, 1, 2],
+            sum: 4,
+            bonus: 0,
+            size: 6,
+        };
+
+        let e = a.merge(&mut b);
+
+        assert_eq!(r, *e);
+        assert_eq!(0, b.list.len());
     }
 
     #[test]
