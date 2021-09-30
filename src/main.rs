@@ -7,6 +7,8 @@ mod dice;
 mod roll;
 mod result;
 
+const PROMPT:&str = "Dices> ";
+
 use crate::result::*;
 
 fn main() {
@@ -28,7 +30,7 @@ fn main() {
         .iter()
         .collect();
 
-    let mut repl = Repl::newd("EAS> ", ". ", Some(hist));
+    let mut repl = Repl::newd(PROMPT, ". ", Some(hist));
 
     loop {
         let cmd = repl.next(Color::Black).unwrap();
