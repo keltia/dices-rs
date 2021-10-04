@@ -11,6 +11,7 @@ pub struct Res {
     pub size: i32,
 }
 
+/// Our own Res(ult) implementation
 impl Res {
     /// Empty set.
     pub fn new() -> Self {

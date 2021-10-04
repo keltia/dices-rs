@@ -11,6 +11,7 @@ const PROMPT:&str = "Dices> ";
 
 use crate::result::*;
 
+/// Main entry point
 fn main() {
 
     let home = home_dir().unwrap();
