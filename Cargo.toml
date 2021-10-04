@@ -8,3 +8,4 @@ edition = "2018"
 [dependencies]
 shelp = "0.2.1"
 home = "0.5.3"
+rand = "0.8.4"
