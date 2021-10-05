@@ -1,6 +1,6 @@
 use crate::result::Res;
 
 pub trait Roll {
-    fn roll(t: Dice, n: i32) -> Res;
+    fn roll<'a>(&self, r: &'a mut Res) -> &'a mut Res;
 }
 
