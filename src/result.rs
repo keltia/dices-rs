@@ -1,20 +1,20 @@
 
-#[derive(Debug,Eq, PartialEq)]
+#[derive(Debug,Eq,PartialEq)]
 pub struct Res {
     /// Store all the rolled dices
-    pub list: Vec<i32>,
+    pub list: Vec<usize>,
     /// Sum of all dices
-    pub sum: i32,
+    pub sum: usize,
     /// If there is a malus/bonus to apply
-    pub bonus: i32,
+    pub bonus: usize,
     /// Assume all same dices
-    pub size: i32,
+    pub size: usize,
 }
 
 /// Our own Res(ult) implementation
 impl Res {
     /// Empty set.
-    pub fn new() -> Self {
+    pub fn new() -> Res {
         Res {
             list: Vec::new(),
             sum: 0,
@@ -24,14 +24,14 @@ impl Res {
     }
 
     /// Add one result to a set
-    pub fn append(&mut self, v: i32) -> &Self {
+    pub fn append(&mut self, v: usize) -> &mut Self {
         self.list.push(v);
         self.sum += v;
         self
     }
 
     /// Merge two sets a & b.  b is empty afterwards.
-    pub fn merge(&mut self, r: &mut Res) -> &Self {
+    pub fn merge(&mut self, r: &mut Res) -> &mut Self {
         self.list.append(&mut r.list);
         self.sum += r.sum;
         self.bonus += r.bonus;
