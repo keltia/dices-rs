@@ -84,33 +84,28 @@ impl Roll for OpenDice {
     }
 }
 
-pub struct Dices<T> {
-    l: Vec<T>
-}
+//pub struct Dices<T> {
+//    l: Vec<T>
+//}
 
-impl Dices<RegDice> {
-    pub fn new() -> Self {
-        Dices {
-            l: Vec::<RegDice>::new()
-        }
-    }
-
-    pub fn append(&self, iter: impl IntoIterator<Item = Dice>) -> &Dices<RegDice> {
-        self.append(iter)
-    }
-}
+pub type Dices<T> = Vec<T>;
 
 impl Roll for Dices<RegDice> {
     fn roll<'a>(&self, r: &'a mut Res) -> &'a mut Res {
         let mut r1 = r;
 
-        for dice in &self.l {
+        for dice in self {
             r1 = dice.roll(r1);
         }
         r1
     }
 }
 
+fn new<T>(s: usize) -> Dices<T> {
+    <T>::new()
+}
+
+/*
 impl Dices<OpenDice> {
     pub fn new() -> Self {
         Dices {
@@ -118,8 +113,11 @@ impl Dices<OpenDice> {
         }
     }
 
-    pub fn append(&self, iter: impl IntoIterator<Item = Dice>) -> &Dices<OpenDice> {
-        self.append(iter)
+    pub fn append(&mut self, iter: impl IntoIterator<Item = OpenDice>) -> &Dices<OpenDice> {
+        for d in iter {
+            self.l.push(d)
+        }
+        self
     }
 }
 
@@ -133,7 +131,7 @@ impl Roll for Dices<OpenDice> {
         r1
     }
 }
-
+*/
 
 #[cfg(test)]
 mod test {
@@ -237,5 +235,14 @@ mod test {
         assert_eq!(1, r.list.len());
         assert_ne!(0, r.sum);
         assert!(r.sum <= 6)
+    }
+
+    #[test]
+    fn test_dices_reg() {
+        let set= Dices::<RegDice>::new();
+        let mut r = Res::new();
+
+        let r = set.roll(&mut r);
+        println!("{:#?}", r);
     }
 }
