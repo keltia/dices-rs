@@ -14,12 +14,12 @@ pub struct Res {
 /// Our own Res(ult) implementation
 impl Res {
     /// Empty set.
-    pub fn new() -> Res {
+    pub fn new(s: usize) -> Res {
         Res {
             list: Vec::new(),
             sum: 0,
             bonus: 0,
-            size: 6,
+            size: s,
         }
     }
 
@@ -47,6 +47,13 @@ impl Res {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_new() {
+        let a = Res::new(8);
+
+        assert_eq!(8, a.size);
+    }
 
     #[test]
     fn test_append() {
