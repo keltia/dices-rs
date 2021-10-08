@@ -1,6 +1,29 @@
 //! Main module to deal with dices, rolls, bonuses, etc.
 //!
-//! Example:
+//! We have four types of dices:
+//!
+//! - `Constant(size)`
+//!   always yield the same value
+//! - `Regular(size)`
+//!   yield a value between 1 and `size`
+//! - `Open(size)`
+//!   like a regular dice but if value is `size`, reroll one more.
+//! - `Bonus(size)`
+//!   Simulate a dice to store the bonus along with dices
+//!
+//! One can use the `Dice` type for individual dices & rolls or the easier `DiceSet` type which has a
+//! `parse()` method which simplify the process.
+//!
+//! Examples:
+//! ```
+//! let d = Dice::Regular(10);
+//! let r = Res::new();
+//!
+//! println!("{:#?}", d.roll(r));
+//! ```
+//!
+//! We define a `Res` variable in order to allow method chaining.
+//!
 //! ```
 //! let ds = DiceSet::parse("3D6 +1"):
 //! let r = Res::new();
