@@ -188,7 +188,7 @@ mod test {
         let r = d.roll(&mut r);
 
         println!("{:?}", r);
-        assert!(r.sum == r1.sum);
+        assert_eq!(r.sum, r1.sum);
         assert_eq!(0, r1.list.len());
         assert_eq!(1, r.list.len());
         assert_eq!(vec![6], r.list);
