@@ -22,14 +22,19 @@ fn is_valid(s: usize) -> Result<bool, String> {
 /// Our different types of Dice.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Dice {
+    /// Always yield the same result
     Constant(usize),
+    /// A dice that will retoll by itself if roll is max
     Open(usize),
+    /// Your regular type of dice
     Regular(usize),
+    /// Used to register any bonus
     Bonus(isize),
 }
 
-/// Implement `roll()` for each type of dices
+/// Implement the dice methods
 impl Dice {
+    /// Implement `roll()` for each type of dices
     pub fn roll<'a>(&self, r: &'a mut Res) -> &'a mut Res {
         let mut res = match *self {
             Dice::Constant(s) => {
@@ -146,6 +151,7 @@ impl DiceSet {
 mod test {
     use super::*;
     use Dice::*;
+    use rstest::rstest;
 
     #[test]
     fn test_is_valid() {
@@ -316,5 +322,14 @@ mod test {
 
         assert_eq!(1, r.bonus);
         assert_eq!(3, r.list.len())
+    }
+
+    #[rstest]
+    #[case(Regular(6),6)]
+    #[case(Constant(8),8)]
+    #[case(Open(12),12)]
+    #[case(Bonus(-1),0)]
+    fn test_size(#[case] d: Dice, #[case] want: usize) {
+        assert_eq!(want, d.size());
     }
 }
