@@ -1,11 +1,11 @@
 use std::path::PathBuf;
 
-use shelp::{Repl, Color};
 use home::home_dir;
+use shelp::{Color, Repl};
 
 mod dice;
 
-const PROMPT:&str = "Dices> ";
+const PROMPT: &str = "Dices> ";
 
 use dice::result::Res;
 
@@ -20,13 +20,13 @@ fn main() {
     println!("{:?}", r);
 
     let hist: PathBuf = [
-            home,
-            PathBuf::from(".config"),
-            PathBuf::from("easctl"),
-            PathBuf::from("history")
-        ]
-        .iter()
-        .collect();
+        home,
+        PathBuf::from(".config"),
+        PathBuf::from("easctl"),
+        PathBuf::from("history"),
+    ]
+    .iter()
+    .collect();
 
     let mut repl = Repl::newd(PROMPT, ". ", Some(hist));
 

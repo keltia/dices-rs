@@ -1,5 +1,4 @@
-
-#[derive(Debug,Eq,PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct Res {
     /// Store all the rolled dices
     pub list: Vec<usize>,

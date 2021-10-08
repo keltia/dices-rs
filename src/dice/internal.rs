@@ -23,7 +23,7 @@ pub fn internal_roll(sides: usize) -> usize {
     let mut i = 0;
     loop {
         if biased_dice(1.0 / (sides - i) as f64) {
-            return i + 1
+            return i + 1;
         }
         i += 1;
     }
@@ -42,4 +42,3 @@ mod test {
         }
     }
 }
-
