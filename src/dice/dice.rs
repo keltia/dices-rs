@@ -105,6 +105,7 @@ impl DiceSet {
     /// and return a `DiceSet` with `[n * Regular(s), Bonus(b)]`
     pub fn parse(s: &str) -> Result<Self, String> {
         let mut ds = Vec::<Dice>::new();
+        let mut bonus = 0;
 
         let uv = s.to_uppercase();
 
@@ -112,7 +113,9 @@ impl DiceSet {
         let v: Vec<&str> = uv.split(' ').collect();
         println!("{:?}", v);
 
-        let bonus = isize::from_str_radix(v[1], 10).unwrap_or_default();
+        if v.len() == 2 {
+            bonus = isize::from_str_radix(v[1], 10).unwrap_or_default();
+        }
 
         // split dice now
         let mut d: Vec<&str> = v[0].split('D').collect();
@@ -279,33 +282,18 @@ mod test {
         assert_eq!(2, r.bonus);
     }
 
-    #[test]
-    fn test_dices_parse() {
-        let str = "3D6 +1";
-
-        let ds = match DiceSet::parse(str) {
+    #[rstest]
+    #[case("D100",vec![Regular(100)])]
+    #[case("D8 -1",vec![Regular(8), Bonus(-1)])]
+    #[case("3D6 +1",vec![Regular(6), Regular(6), Regular(6), Bonus(1)])]
+    fn test_dices_parse(#[case] d: &str, #[case] v: Vec<Dice>) {
+        let ds = match DiceSet::parse(d) {
             Ok(ds) => ds,
             Err(e) => panic!("Unparsable {}", e),
         };
 
-        let rf = DiceSet(vec![Regular(6), Regular(6), Regular(6), Bonus(1)]);
+        let rf = DiceSet(v);
 
-        println!("{:#?}", ds);
-        assert_eq!(rf, ds);
-    }
-
-    #[test]
-    fn test_dices_parse1() {
-        let str = "D6 -1";
-
-        let ds = match DiceSet::parse(str) {
-            Ok(ds) => ds,
-            Err(e) => panic!("Unparsable {}", e),
-        };
-
-        let rf = DiceSet(vec![Regular(6), Bonus(-1)]);
-
-        println!("{:#?}", ds);
         assert_eq!(rf, ds);
     }
 
