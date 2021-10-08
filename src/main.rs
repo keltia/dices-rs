@@ -4,13 +4,10 @@ use shelp::{Repl, Color};
 use home::home_dir;
 
 mod dice;
-mod roll;
-mod result;
-mod internal;
 
 const PROMPT:&str = "Dices> ";
 
-use crate::result::*;
+use dice::result::Res;
 
 /// Main entry point
 fn main() {

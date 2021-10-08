@@ -6,7 +6,7 @@ pub struct Res {
     /// Sum of all dices
     pub sum: usize,
     /// If there is a malus/bonus to apply
-    pub bonus: usize,
+    pub bonus: isize,
     /// Assume all same dices
     pub size: usize,
 }
@@ -14,12 +14,12 @@ pub struct Res {
 /// Our own Res(ult) implementation
 impl Res {
     /// Empty set.
-    pub fn new(s: usize) -> Res {
+    pub fn new() -> Res {
         Res {
             list: Vec::new(),
             sum: 0,
             bonus: 0,
-            size: s,
+            size: 6,
         }
     }
 
@@ -50,9 +50,9 @@ mod tests {
 
     #[test]
     fn test_new() {
-        let a = Res::new(8);
+        let a = Res::new();
 
-        assert_eq!(8, a.size);
+        assert_eq!(6, a.size);
     }
 
     #[test]
