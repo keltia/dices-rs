@@ -153,10 +153,6 @@ impl DiceSet {
         let times = usize::from_str_radix(d[0], 10).unwrap_or_default();
         let size = usize::from_str_radix(d[1], 10).unwrap();
 
-        let times = match times {
-            0 => 1,
-            _ => times,
-        };
         for _ in 0..times {
             ds.push(Dice::Regular(size));
         }
