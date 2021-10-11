@@ -42,7 +42,7 @@ impl Res {
 
     /// Do we have a "natural" result?
     pub fn natural(&self) -> bool {
-        self.list.len() == 1 && &self.sum == &self.size
+        self.list.len() == 1 && self.sum == self.size
     }
 }
 

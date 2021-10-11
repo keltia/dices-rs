@@ -17,18 +17,18 @@
 //! Examples:
 //! ```
 //! let d = Dice::Regular(10);
-//! let r = Res::new();
+//! let mut r = Res::new();
 //!
-//! println!("{:#?}", d.roll(r));
+//! println!("{:#?}", d.roll(&r));
 //! ```
 //!
 //! We define a `Res` variable in order to allow method chaining.
 //!
 //! ```
 //! let ds = DiceSet::parse("3D6 +1"):
-//! let r = Res::new();
+//! let mut r = Res::new();
 //!
-//! println!("{:#?}", ds.roll(r));
+//! println!("{:#?}", ds.roll(&r));
 //! ```
 
 use crate::dice::internal::internal_roll;
@@ -137,7 +137,7 @@ impl DiceSet {
         println!("{:?}", v);
 
         if v.len() == 2 {
-            bonus = isize::from_str_radix(v[1], 10).unwrap_or_default();
+            bonus = v[1].parse::<isize>().unwrap_or_default();
         }
 
         // split dice now
@@ -150,8 +150,8 @@ impl DiceSet {
             _ => d[0],
         };
 
-        let times = usize::from_str_radix(d[0], 10).unwrap_or_default();
-        let size = usize::from_str_radix(d[1], 10).unwrap();
+        let times = d[0].parse::<usize>().unwrap_or_default();
+        let size = d[1].parse::<usize>().unwrap();
 
         for _ in 0..times {
             ds.push(Dice::Regular(size));
