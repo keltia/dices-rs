@@ -133,4 +133,3 @@ mod tests {
         assert!(b.natural());
     }
 }
-
