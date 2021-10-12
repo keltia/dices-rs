@@ -34,14 +34,6 @@
 use crate::dice::internal::internal_roll;
 use crate::dice::result::Res;
 
-/// Check if we use real dices of fake ones
-fn is_valid(s: usize) -> Result<bool, String> {
-    match s {
-        4 | 6 | 8 | 10 | 12 | 20 | 100 => Ok(true),
-        _ => Err(format!("Error: unknown dice: {}", s)),
-    }
-}
-
 /// Our different types of Dice.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Dice {
@@ -62,17 +54,9 @@ impl Dice {
         let mut res = match *self {
             Dice::Constant(s) => r.append(s),
             Dice::Regular(s) => {
-                if !is_valid(s).unwrap() {
-                    panic!("Bad size {}", s);
-                }
-
                 r.append(internal_roll(s))
             }
             Dice::Open(s) => {
-                if !is_valid(s).unwrap() {
-                    panic!("Bad size {}", s);
-                }
-
                 if r.sum >= s {
                     r
                 } else {
@@ -167,27 +151,10 @@ impl DiceSet {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use rstest::rstest;
     use Dice::*;
-
-    #[test]
-    fn test_is_valid() {
-        for i in [4, 6, 8, 10, 12, 20, 100] {
-            is_valid(i).unwrap();
-        }
-    }
-
-    #[test]
-    #[should_panic]
-    fn test_not_valid() {
-        let r = match is_valid(7) {
-            Ok(r) => r,
-            Err(e) => panic!("{}", e),
-        };
-        assert!(r)
-    }
 
     #[test]
     fn test_constant_new() {
