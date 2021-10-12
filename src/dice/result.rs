@@ -13,6 +13,12 @@ pub struct Res {
     pub size: usize,
 }
 
+impl Default for Res {
+     fn default() -> Self {
+         Self::new()
+   }
+}
+
 /// Our own Res(ult) implementation
 impl Res {
     /// Empty set.
