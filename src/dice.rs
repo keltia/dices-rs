@@ -16,8 +16,8 @@
 //!
 //! Examples:
 //! ```
-//! use dices_rs::Dice;
-//! use dices_rs::result::Res;
+//! use crate::dices_rs::dice::Dice;
+//! use crate::dices_rs::result::Res;
 //!
 //! let d = Dice::Regular(10);
 //! let mut r = Res::new();
@@ -28,8 +28,8 @@
 //! We define a `Res` variable in order to allow method chaining.
 //!
 //! ```
-//! use dices_rs::DiceSet;
-//! use dices_rs::result::Res;
+//! use crate::dices_rs::dice::DiceSet;
+//! use crate::dices_rs::result::Res;
 //!
 //! let ds = DiceSet::parse("3D6 +1");
 //! let mut r = Res::new();
