@@ -2,6 +2,8 @@
 //!
 //! Example:
 //! ```
+//! use dices_rs::internal::internal_roll;
+//!
 //! let r = internal_roll(6);
 //!
 //! println!("Roll = {}", r);
@@ -30,7 +32,7 @@ pub fn internal_roll(sides: usize) -> usize {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
 
     #[test]
@@ -42,3 +44,4 @@ mod test {
         }
     }
 }
+

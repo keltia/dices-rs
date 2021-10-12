@@ -16,31 +16,28 @@
 //!
 //! Examples:
 //! ```
-//! let d = Dice::Regular(10);
-//! let r = Res::new();
+//! use dices_rs::Dice;
+//! use dices_rs::result::Res;
 //!
-//! println!("{:#?}", d.roll(r));
+//! let d = Dice::Regular(10);
+//! let mut r = Res::new();
+//!
+//! println!("{:#?}", d.roll(&mut r));
 //! ```
 //!
 //! We define a `Res` variable in order to allow method chaining.
 //!
 //! ```
-//! let ds = DiceSet::parse("3D6 +1"):
-//! let r = Res::new();
+//! use dices_rs::DiceSet;
+//! use dices_rs::result::Res;
 //!
-//! println!("{:#?}", ds.roll(r));
+//! let ds = DiceSet::parse("3D6 +1");
+//! let mut r = Res::new();
+//!
+//! println!("{:#?}", ds.roll(&r));
 //! ```
 
-use crate::dice::internal::internal_roll;
-use crate::dice::result::Res;
-
-/// Check if we use real dices of fake ones
-fn is_valid(s: usize) -> Result<bool, String> {
-    match s {
-        4 | 6 | 8 | 10 | 12 | 20 | 100 => Ok(true),
-        _ => Err(format!("Error: unknown dice: {}", s)),
-    }
-}
+use crate::result::Res;
 
 /// Our different types of Dice.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -62,17 +59,9 @@ impl Dice {
         let mut res = match *self {
             Dice::Constant(s) => r.append(s),
             Dice::Regular(s) => {
-                if !is_valid(s).unwrap() {
-                    panic!("Bad size {}", s);
-                }
-
-                r.append(internal_roll(s))
+                r.append(crate::internal::internal_roll(s))
             }
             Dice::Open(s) => {
-                if !is_valid(s).unwrap() {
-                    panic!("Bad size {}", s);
-                }
-
                 if r.sum >= s {
                     r
                 } else {
@@ -137,7 +126,7 @@ impl DiceSet {
         println!("{:?}", v);
 
         if v.len() == 2 {
-            bonus = isize::from_str_radix(v[1], 10).unwrap_or_default();
+            bonus = v[1].parse::<isize>().unwrap_or_default();
         }
 
         // split dice now
@@ -150,13 +139,9 @@ impl DiceSet {
             _ => d[0],
         };
 
-        let times = usize::from_str_radix(d[0], 10).unwrap_or_default();
-        let size = usize::from_str_radix(d[1], 10).unwrap();
+        let times = d[0].parse::<usize>().unwrap_or_default();
+        let size = d[1].parse::<usize>().unwrap();
 
-        let times = match times {
-            0 => 1,
-            _ => times,
-        };
         for _ in 0..times {
             ds.push(Dice::Regular(size));
         }
@@ -171,27 +156,9 @@ impl DiceSet {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use rstest::rstest;
-    use Dice::*;
-
-    #[test]
-    fn test_is_valid() {
-        for i in [4, 6, 8, 10, 12, 20, 100] {
-            is_valid(i).unwrap();
-        }
-    }
-
-    #[test]
-    #[should_panic]
-    fn test_not_valid() {
-        let r = match is_valid(7) {
-            Ok(r) => r,
-            Err(e) => panic!("{}", e),
-        };
-        assert!(r)
-    }
 
     #[test]
     fn test_constant_new() {
@@ -306,9 +273,9 @@ mod test {
     }
 
     #[rstest]
-    #[case("D100",vec![Regular(100)])]
-    #[case("D8 -1",vec![Regular(8), Bonus(-1)])]
-    #[case("3D6 +1",vec![Regular(6), Regular(6), Regular(6), Bonus(1)])]
+    #[case("D100",vec![Dice::Regular(100)])]
+    #[case("D8 -1",vec![Dice::Regular(8), Dice::Bonus(-1)])]
+    #[case("3D6 +1",vec![Dice::Regular(6), Dice::Regular(6), Dice::Regular(6), Dice::Bonus(1)])]
     fn test_dices_parse(#[case] d: &str, #[case] v: Vec<Dice>) {
         let ds = match DiceSet::parse(d) {
             Ok(ds) => ds,
@@ -322,7 +289,8 @@ mod test {
 
     #[test]
     fn test_dices_roll() {
-        let rf = DiceSet(vec![Regular(6), Regular(6), Regular(6), Bonus(1)]);
+        let rf = DiceSet(
+            vec![Dice::Regular(6), Dice::Regular(6), Dice::Regular(6), Dice::Bonus(1)]);
 
         let mut r = Res::new();
         let r = rf.roll(&mut r);
@@ -332,10 +300,10 @@ mod test {
     }
 
     #[rstest]
-    #[case(Regular(6), 6)]
-    #[case(Constant(8), 8)]
-    #[case(Open(12), 12)]
-    #[case(Bonus(-1),0)]
+    #[case(Dice::Regular(6), 6)]
+    #[case(Dice::Constant(8), 8)]
+    #[case(Dice::Open(12), 12)]
+    #[case(Dice::Bonus(-1),0)]
     fn test_size(#[case] d: Dice, #[case] want: usize) {
         assert_eq!(want, d.size());
     }

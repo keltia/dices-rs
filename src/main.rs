@@ -3,21 +3,22 @@ use std::path::PathBuf;
 use home::home_dir;
 use shelp::{Color, Repl};
 
-mod dice;
+/// Stitch our modules together
+pub mod dice;
+pub mod internal;
+pub mod result;
 
-const PROMPT: &str = "Dices> ";
+use crate::result::Res;
+use crate::dice::DiceSet;
 
-use dice::result::Res;
+const PS1: &str = "Dices> ";
+const PS2: &str = "..> ";
 
 /// Main entry point
 fn main() {
     let home = home_dir().unwrap();
 
     println!("Hello, world!");
-
-    let r = Res::new();
-
-    println!("{:?}", r);
 
     let hist: PathBuf = [
         home,
@@ -28,11 +29,28 @@ fn main() {
     .iter()
     .collect();
 
-    let mut repl = Repl::newd(PROMPT, ". ", Some(hist));
+    let mut repl = Repl::newd(PS1, PS2, Some(hist));
 
     loop {
         let cmd = repl.next(Color::Black).unwrap();
 
-        println!("cmd={}", cmd);
+        let mut r = Res::new();
+
+        let args: Vec<&str> = cmd.split(' ').collect();
+        println!("cmd={}", args[0]);
+
+        if args[0] == "dice" {
+            let args = &args[1..];
+
+            let ds = match DiceSet::parse(args[0]) {
+                Ok(ds) => ds,
+                Err(e) => {
+                    println!("Error: {}", e);
+                    continue;
+                },
+            };
+
+            println!("roll = {:?}", ds.roll(&mut r));
+        }
     }
 }

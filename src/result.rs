@@ -13,6 +13,12 @@ pub struct Res {
     pub size: usize,
 }
 
+impl Default for Res {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// Our own Res(ult) implementation
 impl Res {
     /// Empty set.
@@ -42,7 +48,7 @@ impl Res {
 
     /// Do we have a "natural" result?
     pub fn natural(&self) -> bool {
-        self.list.len() == 1 && &self.sum == &self.size
+        self.list.len() == 1 && self.sum == self.size
     }
 }
 
@@ -127,3 +133,4 @@ mod tests {
         assert!(b.natural());
     }
 }
+
