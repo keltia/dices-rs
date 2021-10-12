@@ -58,9 +58,7 @@ impl Dice {
     pub fn roll<'a>(&self, r: &'a mut Res) -> &'a mut Res {
         let mut res = match *self {
             Dice::Constant(s) => r.append(s),
-            Dice::Regular(s) => {
-                r.append(crate::internal::internal_roll(s))
-            }
+            Dice::Regular(s) => r.append(crate::internal::internal_roll(s)),
             Dice::Open(s) => {
                 if r.sum >= s {
                     r
@@ -289,8 +287,12 @@ mod tests {
 
     #[test]
     fn test_dices_roll() {
-        let rf = DiceSet(
-            vec![Dice::Regular(6), Dice::Regular(6), Dice::Regular(6), Dice::Bonus(1)]);
+        let rf = DiceSet(vec![
+            Dice::Regular(6),
+            Dice::Regular(6),
+            Dice::Regular(6),
+            Dice::Bonus(1),
+        ]);
 
         let mut r = Res::new();
         let r = rf.roll(&mut r);

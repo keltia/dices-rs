@@ -8,8 +8,8 @@ pub mod dice;
 pub mod internal;
 pub mod result;
 
-use crate::result::Res;
 use crate::dice::DiceSet;
+use crate::result::Res;
 
 const PS1: &str = "Dices> ";
 const PS2: &str = "..> ";
@@ -47,7 +47,7 @@ fn main() {
                 Err(e) => {
                     println!("Error: {}", e);
                     continue;
-                },
+                }
             };
 
             println!("roll = {:?}", ds.roll(&mut r));
