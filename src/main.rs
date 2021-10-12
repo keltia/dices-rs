@@ -3,13 +3,16 @@ use std::path::PathBuf;
 use home::home_dir;
 use shelp::{Color, Repl};
 
-mod dice;
+/// Stitch our modules together
+pub mod dice;
+pub mod internal;
+pub mod result;
+
+use crate::result::Res;
+use crate::dice::DiceSet;
 
 const PS1: &str = "Dices> ";
 const PS2: &str = "..> ";
-
-use dices_rs::dice::*;
-use dices_rs::result::Res;
 
 /// Main entry point
 fn main() {

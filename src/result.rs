@@ -14,9 +14,9 @@ pub struct Res {
 }
 
 impl Default for Res {
-     fn default() -> Self {
-         Self::new()
-   }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 /// Our own Res(ult) implementation
@@ -133,3 +133,4 @@ mod tests {
         assert!(b.natural());
     }
 }
+
