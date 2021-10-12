@@ -1,4 +1,7 @@
 //! Implementation & tests for the structure holding result of rolls
+//!
+//! All functions returns self to allow for chaining
+//!
 
 /// Holds a result which is all the rolls for a given set of dices.
 #[derive(Debug, Eq, PartialEq)]
@@ -13,6 +16,7 @@ pub struct Res {
     pub size: usize,
 }
 
+/// Allow for `.unwrap_or_default()` calls.
 impl Default for Res {
     fn default() -> Self {
         Self::new()
@@ -21,7 +25,8 @@ impl Default for Res {
 
 /// Our own Res(ult) implementation
 impl Res {
-    /// Empty set.
+    /// Creates an empty dice set.  Assumes all dices are of the same size
+    /// although `list` can contains dices of different sizes (cf. `Bonus`).
     pub fn new() -> Res {
         Res {
             list: Vec::new(),

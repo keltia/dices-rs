@@ -11,8 +11,8 @@
 //! - `Bonus(size)`
 //!   Simulate a dice to store the bonus along with dices
 //!
-//! One can use the `Dice` type for individual dices & rolls or the easier `DiceSet` type which has a
-//! `parse()` method which simplify the process.
+//! One can use the `Dice` type for individual dices & rolls or the easier `DiceSet` type which
+//! has a `parse()` method which simplify the process.
 //!
 //! Examples:
 //! ```
@@ -39,7 +39,7 @@
 
 use crate::result::Res;
 
-/// Our different types of Dice.
+/// Our different types of `Dice`.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Dice {
     /// Always yield the same result

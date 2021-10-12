@@ -10,7 +10,7 @@
 //! ```
 //!
 
-/// Include the rand family
+/// Include the [rand] family
 use rand::prelude::*;
 
 /// Head or Tail?
