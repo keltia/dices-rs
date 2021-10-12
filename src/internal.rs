@@ -2,6 +2,8 @@
 //!
 //! Example:
 //! ```
+//! use dices_rs::internal::*;
+//!
 //! let r = internal_roll(6);
 //!
 //! println!("Roll = {}", r);

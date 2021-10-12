@@ -1,3 +1,3 @@
+pub mod result;
 pub mod dice;
-mod result;
-mod internal;
+pub mod internal;

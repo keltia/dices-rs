@@ -8,8 +8,8 @@ mod dice;
 const PS1: &str = "Dices> ";
 const PS2: &str = "..> ";
 
-use dice::dice::*;
-use dice::result::Res;
+use dices_rs::dice::*;
+use dices_rs::result::Res;
 
 /// Main entry point
 fn main() {

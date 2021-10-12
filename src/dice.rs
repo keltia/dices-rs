@@ -16,7 +16,8 @@
 //!
 //! Examples:
 //! ```
-//! use dices_rs::dice::dice::*;
+//! use dices_rs::dice::*;
+//! use dices_rs::result::*;
 //!
 //! let d = Dice::Regular(10);
 //! let mut r = Res::new();
@@ -27,7 +28,8 @@
 //! We define a `Res` variable in order to allow method chaining.
 //!
 //! ```
-//! use dices_rs::dice::dice::*;
+//! use dices_rs::dice::*;
+//! use dices_rs::result::*;
 //!
 //! let ds = DiceSet::parse("3D6 +1");
 //! let mut r = Res::new();
@@ -35,8 +37,8 @@
 //! println!("{:#?}", ds.roll(&r));
 //! ```
 
-use crate::dice::internal::internal_roll;
-use crate::dice::result::Res;
+//pub use crate::result::Res;
+//pub use crate::internal::internal_roll;
 
 /// Our different types of Dice.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -54,17 +56,17 @@ pub enum Dice {
 /// Implement the dice methods
 impl Dice {
     /// Implement `roll()` for each type of dices
-    pub fn roll<'a>(&self, r: &'a mut Res) -> &'a mut Res {
+    pub fn roll<'a>(&self, r: &'a mut crate::result::Res) -> &'a mut crate::result::Res {
         let mut res = match *self {
             Dice::Constant(s) => r.append(s),
             Dice::Regular(s) => {
-                r.append(internal_roll(s))
+                r.append(crate::internal::internal_roll(s))
             }
             Dice::Open(s) => {
                 if r.sum >= s {
                     r
                 } else {
-                    r.merge(self.roll(&mut Res::new()))
+                    r.merge(self.roll(&mut crate::result::Res::new()))
                 }
             }
             Dice::Bonus(s) => {
@@ -92,7 +94,7 @@ pub struct DiceSet(Vec<Dice>);
 /// a Dice set
 impl DiceSet {
     /// The real stuff, roll every dice in the set and add all rolls
-    pub fn roll<'a>(&self, r: &'a mut Res) -> &'a mut Res {
+    pub fn roll<'a>(&self, r: &'a mut crate::result::Res) -> &'a mut crate::result::Res {
         let mut r1 = r;
 
         for dice in &self.0 {
@@ -158,7 +160,6 @@ impl DiceSet {
 mod tests {
     use super::*;
     use rstest::rstest;
-    use Dice::*;
 
     #[test]
     fn test_constant_new() {
@@ -170,10 +171,10 @@ mod tests {
     #[test]
     fn test_constant_roll() {
         let d = Dice::Constant(6);
-        let mut r1 = Res::new();
+        let mut r1 = crate::result::Res::new();
         r1.sum = 6;
 
-        let mut r = Res::new();
+        let mut r = crate::result::Res::new();
 
         let r = d.roll(&mut r);
 
@@ -199,7 +200,7 @@ mod tests {
     #[test]
     fn test_reg_roll() {
         let d = Dice::Regular(6);
-        let mut r = Res::new();
+        let mut r = crate::result::Res::new();
 
         assert_eq!(0, r.list.len());
         assert_eq!(0, r.sum);
@@ -221,7 +222,7 @@ mod tests {
     #[test]
     fn test_open_roll() {
         let d = Dice::Regular(6);
-        let mut r = Res::new();
+        let mut r = crate::result::Res::new();
 
         assert_eq!(0, r.list.len());
         assert_eq!(0, r.sum);
@@ -242,7 +243,7 @@ mod tests {
     #[test]
     fn test_dice_const() {
         let die = Dice::Constant(4);
-        let mut r = Res::new();
+        let mut r = crate::result::Res::new();
 
         let r = die.roll(&mut r);
 
@@ -263,7 +264,7 @@ mod tests {
 
         println!("{:#?}", v);
 
-        let mut r = Res::new();
+        let mut r = crate::result::Res::new();
 
         let r = v.roll(&mut r);
         println!("{:#?}", r);
@@ -273,9 +274,9 @@ mod tests {
     }
 
     #[rstest]
-    #[case("D100",vec![Regular(100)])]
-    #[case("D8 -1",vec![Regular(8), Bonus(-1)])]
-    #[case("3D6 +1",vec![Regular(6), Regular(6), Regular(6), Bonus(1)])]
+    #[case("D100",vec![Dice::Regular(100)])]
+    #[case("D8 -1",vec![Dice::Regular(8), Dice::Bonus(-1)])]
+    #[case("3D6 +1",vec![Dice::Regular(6), Dice::Regular(6), Dice::Regular(6), Dice::Bonus(1)])]
     fn test_dices_parse(#[case] d: &str, #[case] v: Vec<Dice>) {
         let ds = match DiceSet::parse(d) {
             Ok(ds) => ds,
@@ -289,9 +290,10 @@ mod tests {
 
     #[test]
     fn test_dices_roll() {
-        let rf = DiceSet(vec![Regular(6), Regular(6), Regular(6), Bonus(1)]);
+        let rf = DiceSet(
+            vec![Dice::Regular(6), Dice::Regular(6), Dice::Regular(6), Dice::Bonus(1)]);
 
-        let mut r = Res::new();
+        let mut r = crate::result::Res::new();
         let r = rf.roll(&mut r);
 
         assert_eq!(1, r.bonus);
@@ -299,10 +301,10 @@ mod tests {
     }
 
     #[rstest]
-    #[case(Regular(6), 6)]
-    #[case(Constant(8), 8)]
-    #[case(Open(12), 12)]
-    #[case(Bonus(-1),0)]
+    #[case(Dice::Regular(6), 6)]
+    #[case(Dice::Constant(8), 8)]
+    #[case(Dice::Open(12), 12)]
+    #[case(Dice::Bonus(-1),0)]
     fn test_size(#[case] d: Dice, #[case] want: usize) {
         assert_eq!(want, d.size());
     }
