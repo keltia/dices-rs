@@ -9,20 +9,26 @@ use dices_rs::result::Res;
 const PS1: &str = "Dices> ";
 const PS2: &str = "..> ";
 
+/// Simple macro to generate PathBuf from a series of entries
+///
+#[macro_export]
+macro_rules! makepath {
+    ($($item:expr),+) => {
+        [
+        $(PathBuf::from($item),)+
+        ]
+        .iter()
+        .collect()
+    };
+}
+
 /// Main entry point
 fn main() {
     let home = home_dir().unwrap();
 
     println!("Hello, world!");
 
-    let hist: PathBuf = [
-        home,
-        PathBuf::from(".config"),
-        PathBuf::from("easctl"),
-        PathBuf::from("history"),
-    ]
-    .iter()
-    .collect();
+    let hist= makepath!(".config", "dices", "history");
 
     let mut repl = Repl::newd(PS1, PS2, Some(hist));
 
