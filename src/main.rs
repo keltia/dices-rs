@@ -34,6 +34,7 @@ fn main() {
 
     loop {
         let cmd = repl.next(Color::Black).unwrap();
+        let mut r = Res::new();
 
         let mut r = Res::new();
 
