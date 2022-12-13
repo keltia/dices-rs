@@ -71,6 +71,7 @@ mod tests {
     #[rstest]
     #[case("D1", (DiceSet::from_vec(vec![Dice::Constant(1)]), 0))]
     #[case("D6 +2", (DiceSet::from_vec(vec![Dice::Constant(6)]), 2))]
+    #[case("D6 =2", (DiceSet::from_vec(vec![Dice::Constant(6)]), 0))]
     #[case("3D6", (DiceSet::from_vec(vec![Dice::Constant(6), Dice::Constant(6), Dice::Constant(6)]), 0))]
     #[case("3D6 -2", (DiceSet::from_vec(vec![Dice::Constant(6), Dice::Constant(6), Dice::Constant(6)]), -2))]
     fn test_parse_with_bonus(#[case] input: &str, #[case] res: (DiceSet, i8)) {
