@@ -3,8 +3,8 @@ use std::path::PathBuf;
 use home::home_dir;
 use shelp::{Color, Repl};
 
+use dices_rs::dice::result::Res;
 use dices_rs::dice::DiceSet;
-use dices_rs::result::Res;
 
 const PS1: &str = "Dices> ";
 const PS2: &str = "..> ";
@@ -28,13 +28,12 @@ fn main() {
 
     println!("Hello, world!");
 
-    let hist= makepath!(".config", "dices", "history");
+    let hist = makepath!(".config", "dices", "history");
 
     let mut repl = Repl::newd(PS1, PS2, Some(hist));
 
     loop {
-        let cmd = repl.next(Color::Black).unwrap();
-        let mut r = Res::new();
+        let cmd = repl.next(Color::White).unwrap();
 
         let mut r = Res::new();
 
