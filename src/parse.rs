@@ -1,12 +1,9 @@
 use nom::{
-    branch::alt,
-    bytes::complete::{tag, take},
-    character::complete::{anychar, i32, i8, one_of, space0, u32, u8},
+    bytes::complete::tag,
+    character::complete::{i8, one_of, space0, u32, u8},
     combinator::map,
-    combinator::{opt, recognize},
-    multi::many0,
-    sequence::delimited,
-    sequence::{pair, preceded, tuple},
+    combinator::opt,
+    sequence::{pair, preceded},
     IResult,
 };
 
