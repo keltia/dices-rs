@@ -3,11 +3,24 @@ use std::path::PathBuf;
 use home::home_dir;
 use shelp::{Color, Repl};
 
+use dices_rs::dice::result::Res;
 use dices_rs::dice::DiceSet;
-use dices_rs::result::Res;
 
 const PS1: &str = "Dices> ";
 const PS2: &str = "..> ";
+
+/// Simple macro to generate PathBuf from a series of entries
+///
+#[macro_export]
+macro_rules! makepath {
+    ($($item:expr),+) => {
+        [
+        $(PathBuf::from($item),)+
+        ]
+        .iter()
+        .collect()
+    };
+}
 
 /// Main entry point
 fn main() {
@@ -15,19 +28,12 @@ fn main() {
 
     println!("Hello, world!");
 
-    let hist: PathBuf = [
-        home,
-        PathBuf::from(".config"),
-        PathBuf::from("easctl"),
-        PathBuf::from("history"),
-    ]
-    .iter()
-    .collect();
+    let hist = makepath!(".config", "dices", "history");
 
     let mut repl = Repl::newd(PS1, PS2, Some(hist));
 
     loop {
-        let cmd = repl.next(Color::Black).unwrap();
+        let cmd = repl.next(Color::White).unwrap();
 
         let mut r = Res::new();
 

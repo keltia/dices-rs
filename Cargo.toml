@@ -1,6 +1,6 @@
 [package]
 name = "dices-rs"
-version = "0.4.0"
+version = "0.4.99"
 authors = ["Ollivier Robert <roberto@keltia.net>"]
 edition = "2018"
 keywords = ["dice", "roll", "RPG", "roll", "random"]
@@ -22,7 +22,8 @@ maintenance = { status = "actively-developed" }
 [dependencies]
 shelp = "0.2.1"
 home = "0.5.3"
+nom = "7.1.1"
 rand = "0.8.4"
 
 [dev-dependencies]
-rstest = "0.11.0"
+rstest = "0.16.0"
