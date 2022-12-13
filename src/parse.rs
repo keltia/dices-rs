@@ -29,7 +29,13 @@ fn parse_ndices(input: &str) -> IResult<&str, DiceSet> {
 }
 
 fn parse_bonus(input: &str) -> IResult<&str, std::primitive::i8> {
-    preceded(one_of("+-"), i8)(input)
+    let get_sign = |(s, n): (char, i8)| match s {
+        '-' => -n,
+        '+' => n,
+        _ => 0,
+    };
+    let r = pair(one_of("+-"), i8);
+    map(r, get_sign)(input)
 }
 
 fn parse_with_bonus(input: &str) -> IResult<&str, (DiceSet, i8)> {
