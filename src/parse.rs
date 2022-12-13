@@ -21,7 +21,7 @@ fn parse_ndices(input: &str) -> IResult<&str, DiceSet> {
             None => 1,
             Some(n) => n,
         };
-        let v: Vec<Dice> = (1..=n).map(|f| d).collect();
+        let v: Vec<Dice> = (1..=n).map(|_| d).collect();
         DiceSet::from_vec(v.clone())
     };
     let r = pair(opt(u8), parse_dice);
