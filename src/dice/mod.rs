@@ -17,7 +17,7 @@
 //! Examples:
 //! ```
 //! use dices_rs::dice::Dice;
-//! use dices_rs::result::Res;
+//! use dices_rs::dice::result::Res;
 //!
 //! let d = Dice::Regular(10);
 //! let mut r = Res::new();
@@ -29,7 +29,7 @@
 //!
 //! ```
 //! use dices_rs::dice::DiceSet;
-//! use dices_rs::result::Res;
+//! use dices_rs::dice::result::Res;
 //!
 //! let ds = match DiceSet::parse("3D6 +1") {
 //!     Ok(ds) => ds,
@@ -40,7 +40,11 @@
 //! println!("{:#?}", ds.roll(&mut r));
 //! ```
 
-use crate::result::Res;
+use internal::internal_roll;
+use result::Res;
+
+pub mod internal;
+pub mod result;
 
 /// Our different types of `Dice`.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -61,7 +65,7 @@ impl Dice {
     pub fn roll<'a>(&self, r: &'a mut Res) -> &'a mut Res {
         let mut res = match *self {
             Dice::Constant(s) => r.append(s),
-            Dice::Regular(s) => r.append(crate::internal::internal_roll(s)),
+            Dice::Regular(s) => r.append(internal_roll(s)),
             Dice::Open(s) => {
                 if r.sum >= s {
                     r
