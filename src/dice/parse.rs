@@ -13,7 +13,7 @@ use nom::{
     IResult,
 };
 
-use dices_rs::dice::{Dice, DiceSet};
+use crate::dice::{Dice, DiceSet};
 
 fn parse_dice(input: &str) -> IResult<&str, Dice> {
     let into_dice = |s: u32| Dice::Constant(s as usize);
