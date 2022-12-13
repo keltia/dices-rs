@@ -93,6 +93,13 @@ pub struct DiceSet(Vec<Dice>);
 
 /// a Dice set
 impl DiceSet {
+    /// Create a DiceSet from a vec of Dice
+    /// Used by the nom parser.
+    ///
+    pub fn from_vec(v: Vec<Dice>) -> Self {
+        Self(v)
+    }
+
     /// The real stuff, roll every dice in the set and add all rolls
     pub fn roll<'a>(&self, r: &'a mut Res) -> &'a mut Res {
         let mut r1 = r;
