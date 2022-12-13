@@ -1,3 +1,9 @@
+//! nom-based parser for the various pieces of the 'Roll A Dice' grammar.
+//!
+//! This will be used by the command parser in `main.rs` to validate that the `dice`
+//! command is given the right arguments.
+//!
+
 use nom::{
     bytes::complete::tag,
     character::complete::{i8, one_of, space0, u32, u8},
