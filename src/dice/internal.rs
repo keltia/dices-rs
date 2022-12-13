@@ -2,7 +2,7 @@
 //!
 //! Example:
 //! ```
-//! use dices_rs::internal::internal_roll;
+//! use dices_rs::dice::internal::internal_roll;
 //!
 //! let r = internal_roll(6);
 //!
