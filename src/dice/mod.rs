@@ -44,6 +44,7 @@ use internal::internal_roll;
 use result::Res;
 
 pub mod internal;
+pub mod parse;
 pub mod result;
 
 /// Our different types of `Dice`.
