@@ -105,6 +105,13 @@ impl DiceSet {
         Self(v)
     }
 
+    /// Add a dice to a `DiceSet`
+    ///
+    pub fn add(&mut self, d: Dice) -> &mut Self {
+        self.0.push(d);
+        self
+    }
+
     /// The real stuff, roll every dice in the set and add all rolls
     pub fn roll<'a>(&self, r: &'a mut Res) -> &'a mut Res {
         let mut r1 = r;
