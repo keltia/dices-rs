@@ -41,6 +41,7 @@
 //! ```
 
 use internal::internal_roll;
+use log::debug;
 use result::Res;
 
 pub mod internal;
@@ -143,7 +144,7 @@ impl DiceSet {
 
         // split between dice and bonus
         let v: Vec<&str> = uv.split(' ').collect();
-        println!("{:?}", v);
+        debug!("{:?}", v);
 
         if v.len() == 2 {
             bonus = v[1].parse::<isize>().unwrap_or_default();
@@ -151,7 +152,7 @@ impl DiceSet {
 
         // split dice now
         let mut d: Vec<&str> = v[0].split('D').collect();
-        println!("{:?}", d);
+        debug!("{:?}", d);
 
         // make it explicit that D6 is 1D6
         d[0] = match d[0] {
