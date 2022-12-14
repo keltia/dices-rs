@@ -47,17 +47,19 @@ fn parse_bonus(input: &str) -> IResult<&str, std::primitive::i8> {
     map(r, get_sign)(input)
 }
 
-fn parse_with_bonus(input: &str) -> IResult<&str, (DiceSet, i8)> {
-    let bonus = |(d, b): (DiceSet, Option<std::primitive::i8>)| {
-        let b: i8 = match b {
-            None => 0,
-            Some(n) => n,
+pub fn parse_with_bonus(input: &str) -> IResult<&str, DiceSet> {
+    let add_bonus = |(ds, b): (DiceSet, Option<std::primitive::i8>)| {
+        let b = match b {
+            None => Dice::Bonus(0),
+            Some(n) => Dice::Bonus(n.into()),
         };
-        (d, b)
+        let mut ds = ds.clone();
+        ds.0.push(b);
+        ds.clone()
     };
 
     let r = pair(parse_ndices, opt(preceded(space0, parse_bonus)));
-    map(r, bonus)(input)
+    map(r, add_bonus)(input)
 }
 
 #[cfg(test)]
@@ -78,12 +80,12 @@ mod tests {
     }
 
     #[rstest]
-    #[case("D1", (DiceSet::from_vec(vec![Dice::Constant(1)]), 0))]
-    #[case("D6 +2", (DiceSet::from_vec(vec![Dice::Constant(6)]), 2))]
-    #[case("D6 =2", (DiceSet::from_vec(vec![Dice::Constant(6)]), 0))]
-    #[case("3D6", (DiceSet::from_vec(vec![Dice::Constant(6), Dice::Constant(6), Dice::Constant(6)]), 0))]
-    #[case("3D6 -2", (DiceSet::from_vec(vec![Dice::Constant(6), Dice::Constant(6), Dice::Constant(6)]), -2))]
-    fn test_parse_with_bonus(#[case] input: &str, #[case] res: (DiceSet, i8)) {
+    #[case("D1", DiceSet::from_vec(vec![Dice::Constant(1)]))]
+    #[case("D6 +2", DiceSet::from_vec(vec![Dice::Constant(6), Dice::Bonus(2)]))]
+    #[case("D6 =2", DiceSet::from_vec(vec![Dice::Constant(6)]))]
+    #[case("3D6", DiceSet::from_vec(vec![Dice::Constant(6), Dice::Constant(6), Dice::Constant(6)]))]
+    #[case("3D6 -2", DiceSet::from_vec(vec![Dice::Constant(6), Dice::Constant(6), Dice::Constant(6), Dice::Bonus(-2)]))]
+    fn test_parse_with_bonus(#[case] input: &str, #[case] res: DiceSet) {
         let r = parse_with_bonus(input);
         assert!(r.is_ok());
         let r = r.unwrap();
