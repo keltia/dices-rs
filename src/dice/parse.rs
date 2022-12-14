@@ -15,12 +15,14 @@ use nom::{
 
 use crate::dice::{Dice, DiceSet};
 
+#[inline]
 fn parse_dice(input: &str) -> IResult<&str, Dice> {
     let into_dice = |s: u32| Dice::Constant(s as usize);
     let r = preceded(tag("D"), u32);
     map(r, into_dice)(input)
 }
 
+#[inline]
 fn parse_ndices(input: &str) -> IResult<&str, DiceSet> {
     let into_set = |(n, d): (Option<std::primitive::u8>, Dice)| {
         let n = match n {
@@ -34,6 +36,7 @@ fn parse_ndices(input: &str) -> IResult<&str, DiceSet> {
     map(r, into_set)(input)
 }
 
+#[inline]
 fn parse_bonus(input: &str) -> IResult<&str, std::primitive::i8> {
     let get_sign = |(s, n): (char, i8)| match s {
         '-' => -n,
