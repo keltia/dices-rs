@@ -94,7 +94,7 @@ impl Dice {
 }
 
 /// The more interesting thing, a set of dices
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct DiceSet(Vec<Dice>);
 
 /// a Dice set
