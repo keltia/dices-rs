@@ -49,13 +49,11 @@ fn parse_bonus(input: &str) -> IResult<&str, std::primitive::i8> {
 
 pub fn parse_with_bonus(input: &str) -> IResult<&str, DiceSet> {
     let add_bonus = |(ds, b): (DiceSet, Option<std::primitive::i8>)| {
-        let b = match b {
-            None => Dice::Bonus(0),
-            Some(n) => Dice::Bonus(n.into()),
-        };
         let mut ds = ds.clone();
-        ds.0.push(b);
-        ds.clone()
+        if let Some(bonus) = b {
+            ds.0.push(Dice::Bonus(bonus.into()))
+        };
+        ds
     };
 
     let r = pair(parse_ndices, opt(preceded(space0, parse_bonus)));
