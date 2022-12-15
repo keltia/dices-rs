@@ -1,8 +1,15 @@
+mod cli;
+mod version;
+
+use crate::cli::Opts;
+use crate::version::version;
+
 use dices_rs::dice::{parse::parse_with_bonus, result::Res};
 
 use std::path::PathBuf;
 
 use anyhow::anyhow;
+use clap::Parser;
 use home::home_dir;
 use log::{debug, error, info};
 use nom::{
@@ -12,6 +19,7 @@ use nom::{
     IResult,
 };
 use shelp::{Color, Repl};
+use stderrlog::LogLevelNum::{Debug, Info, Trace};
 
 const PS1: &str = "Dices> ";
 const PS2: &str = "..> ";
@@ -49,41 +57,76 @@ pub fn parse_keyword(input: &str) -> IResult<&str, Cmd> {
 /// Main entry point
 ///
 fn main() {
+    let opts: Opts = Opts::parse();
+
     let home = home_dir().unwrap();
     let hist = makepath!(home, ".config", "dices", "history");
 
+    // Add banner
+    //
+    println!("{}\n", version());
+
+    // Exit if needed
+    //
+    if opts.version {
+        std::process::exit(0);
+    }
+
+    // Check verbosity
+    //
+    let lvl = match opts.verbose {
+        0 => Info,
+        1 => Debug,
+        2 => Trace,
+        _ => Trace,
+    };
+
+    // If we use colours, use light/dark modes
+    //
+    let colour = if opts.dark {
+        Color::White
+    } else {
+        Color::Black
+    };
+
+    // Prepare logging.
+    //
+    stderrlog::new().verbosity(lvl).init().unwrap();
+
     let repl = Repl::newd(PS1, PS2, Some(hist));
 
-    for line in repl.iter(Color::White) {
+    for line in repl.iter(colour) {
         let mut r = Res::new();
         let line = line.to_ascii_uppercase();
 
         let (input, cmd) = match parse_keyword(&line) {
             Ok((input, cmd)) => (input, cmd),
             Err(e) => {
-                println!("Error: {}", anyhow!("{}", e.to_string()));
+                error!("Error: {}", anyhow!("{}", e.to_string()));
                 continue;
             }
         };
 
-        println!("{:?} - {}", cmd, input);
+        debug!("{:?} - {}", cmd, input);
 
         match cmd {
             Cmd::Roll => {
-                println!("now roll it!");
+                debug!("now roll it!");
                 let ds = match preceded(space0, parse_with_bonus)(input) {
                     Ok((_input, ds)) => {
-                        println!("{:?}", ds);
+                        debug!("{:?}", ds);
                         ds
                     }
                     Err(e) => {
-                        println!("Error:{}", anyhow!("{}", e.to_string()));
+                        debug!("Error:{}", anyhow!("{}", e.to_string()));
                         continue;
                     }
                 };
-                println!("roll = {:?}", ds.roll(&mut r));
+                let res = ds.roll(&mut r);
+                info!("roll = {}", res);
+                debug!("{:?}", res);
             }
-            _ => println!("Error: unknown command"),
+            _ => error!("Error: unknown command"),
         }
     }
 }
