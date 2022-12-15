@@ -41,6 +41,7 @@
 //! ```
 
 use internal::internal_roll;
+use log::debug;
 use result::Res;
 
 pub mod internal;
@@ -93,7 +94,7 @@ impl Dice {
 }
 
 /// The more interesting thing, a set of dices
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct DiceSet(Vec<Dice>);
 
 /// a Dice set
@@ -103,6 +104,13 @@ impl DiceSet {
     ///
     pub fn from_vec(v: Vec<Dice>) -> Self {
         Self(v)
+    }
+
+    /// Add a dice to a `DiceSet`
+    ///
+    pub fn add(&mut self, d: Dice) -> &mut Self {
+        self.0.push(d);
+        self
     }
 
     /// The real stuff, roll every dice in the set and add all rolls
@@ -136,7 +144,7 @@ impl DiceSet {
 
         // split between dice and bonus
         let v: Vec<&str> = uv.split(' ').collect();
-        println!("{:?}", v);
+        debug!("{:?}", v);
 
         if v.len() == 2 {
             bonus = v[1].parse::<isize>().unwrap_or_default();
@@ -144,7 +152,7 @@ impl DiceSet {
 
         // split dice now
         let mut d: Vec<&str> = v[0].split('D').collect();
-        println!("{:?}", d);
+        debug!("{:?}", d);
 
         // make it explicit that D6 is 1D6
         d[0] = match d[0] {

@@ -1,6 +1,6 @@
 [package]
 name = "dices-rs"
-version = "0.4.99"
+version = "0.5.0"
 authors = ["Ollivier Robert <roberto@keltia.net>"]
 edition = "2018"
 keywords = ["dice", "roll", "RPG", "roll", "random"]
@@ -17,13 +17,21 @@ rustdoc-args = ["--cfg", "docsrs"]
 [badges]
 maintenance = { status = "actively-developed" }
 
+[[bench]]
+name = "parse"
+harness = false
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-shelp = "0.2.1"
+anyhow = "1.0.66"
 home = "0.5.3"
+log = "0.4.17"
 nom = "7.1.1"
 rand = "0.8.4"
+shelp = "0.2.1"
+stderrlog = "0.5.4"
 
 [dev-dependencies]
+criterion = "0.4.0"
 rstest = "0.16.0"
