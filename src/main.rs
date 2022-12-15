@@ -4,6 +4,13 @@ use std::path::PathBuf;
 
 use anyhow::anyhow;
 use home::home_dir;
+use log::{debug, error, info};
+use nom::{
+    character::complete::{alpha1, space0},
+    combinator::map,
+    sequence::preceded,
+    IResult,
+};
 use shelp::{Color, Repl};
 
 const PS1: &str = "Dices> ";
@@ -21,13 +28,6 @@ macro_rules! makepath {
         .collect()
     };
 }
-
-use nom::{
-    character::complete::{alpha1, space0},
-    combinator::map,
-    sequence::preceded,
-    IResult,
-};
 
 #[derive(Debug)]
 pub enum Cmd {
