@@ -1,6 +1,6 @@
 [package]
 name = "dices-rs"
-version = "0.5.0"
+version = "0.5.1"
 authors = ["Ollivier Robert <roberto@keltia.net>"]
 edition = "2018"
 keywords = ["dice", "roll", "RPG", "roll", "random"]
