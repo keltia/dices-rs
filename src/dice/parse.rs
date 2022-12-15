@@ -49,13 +49,11 @@ fn parse_bonus(input: &str) -> IResult<&str, std::primitive::i8> {
 
 pub fn parse_with_bonus(input: &str) -> IResult<&str, DiceSet> {
     let add_bonus = |(ds, b): (DiceSet, Option<std::primitive::i8>)| {
-        let b = match b {
-            None => Dice::Bonus(0),
-            Some(n) => Dice::Bonus(n.into()),
-        };
         let mut ds = ds.clone();
-        ds.0.push(b);
-        ds.clone()
+        if let Some(bonus) = b {
+            ds.0.push(Dice::Bonus(bonus.into()))
+        };
+        ds
     };
 
     let r = pair(parse_ndices, opt(preceded(space0, parse_bonus)));
@@ -69,9 +67,9 @@ mod tests {
     use std::vec;
 
     #[rstest]
-    #[case("D1", DiceSet::from_vec(vec![Dice::Constant(1)]))]
-    #[case("D6", DiceSet::from_vec(vec![Dice::Constant(6)]))]
-    #[case("3D6", DiceSet::from_vec(vec![Dice::Constant(6), Dice::Constant(6), Dice::Constant(6)]))]
+    #[case("D1", DiceSet::from_vec(vec![Dice::Regular(1)]))]
+    #[case("D6", DiceSet::from_vec(vec![Dice::Regular(6)]))]
+    #[case("3D6", DiceSet::from_vec(vec![Dice::Regular(6), Dice::Regular(6), Dice::Regular(6)]))]
     fn test_parse_dice(#[case] input: &str, #[case] res: DiceSet) {
         let r = parse_ndices(input);
         assert!(r.is_ok());
@@ -80,11 +78,11 @@ mod tests {
     }
 
     #[rstest]
-    #[case("D1", DiceSet::from_vec(vec![Dice::Constant(1)]))]
-    #[case("D6 +2", DiceSet::from_vec(vec![Dice::Constant(6), Dice::Bonus(2)]))]
-    #[case("D6 =2", DiceSet::from_vec(vec![Dice::Constant(6)]))]
-    #[case("3D6", DiceSet::from_vec(vec![Dice::Constant(6), Dice::Constant(6), Dice::Constant(6)]))]
-    #[case("3D6 -2", DiceSet::from_vec(vec![Dice::Constant(6), Dice::Constant(6), Dice::Constant(6), Dice::Bonus(-2)]))]
+    #[case("D1", DiceSet::from_vec(vec![Dice::Regular(1)]))]
+    #[case("D6 +2", DiceSet::from_vec(vec![Dice::Regular(6), Dice::Bonus(2)]))]
+    #[case("D6 =2", DiceSet::from_vec(vec![Dice::Regular(6)]))]
+    #[case("3D6", DiceSet::from_vec(vec![Dice::Regular(6), Dice::Regular(6), Dice::Regular(6)]))]
+    #[case("3D6 -2", DiceSet::from_vec(vec![Dice::Regular(6), Dice::Regular(6), Dice::Regular(6), Dice::Bonus(-2)]))]
     fn test_parse_with_bonus(#[case] input: &str, #[case] res: DiceSet) {
         let r = parse_with_bonus(input);
         assert!(r.is_ok());

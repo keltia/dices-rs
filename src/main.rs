@@ -2,7 +2,7 @@ use dices_rs::dice::{parse::parse_with_bonus, result::Res};
 
 use std::path::PathBuf;
 
-use anyhow::{anyhow, Result};
+use anyhow::anyhow;
 use home::home_dir;
 use shelp::{Color, Repl};
 
@@ -61,7 +61,7 @@ fn main() {
         let (input, cmd) = match parse_keyword(&line) {
             Ok((input, cmd)) => (input, cmd),
             Err(e) => {
-                println!("Error(parse)");
+                println!("Error: {}", anyhow!("{}", e.to_string()));
                 continue;
             }
         };
@@ -77,7 +77,7 @@ fn main() {
                         ds
                     }
                     Err(e) => {
-                        println!("Error(roll)");
+                        println!("Error:{}", anyhow!("{}", e.to_string()));
                         continue;
                     }
                 };
