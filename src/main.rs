@@ -1,10 +1,14 @@
+mod cmds;
+use cmds::{parse_line, Cmd};
+
+use dices_rs::dice::{parse::parse_with_bonus, result::Res};
+
 use std::path::PathBuf;
 
+use anyhow::Result;
 use home::home_dir;
+use nom::{combinator::all_consuming, Finish};
 use shelp::{Color, Repl};
-
-use dices_rs::dice::result::Res;
-use dices_rs::dice::DiceSet;
 
 const PS1: &str = "Dices> ";
 const PS2: &str = "..> ";
@@ -21,37 +25,31 @@ macro_rules! makepath {
         .collect()
     };
 }
-
 /// Main entry point
-fn main() {
+///
+fn main() -> Result<()> {
     let home = home_dir().unwrap();
 
     println!("Hello, world!");
 
-    let hist = makepath!(".config", "dices", "history");
+    let hist = makepath!(home, ".config", "dices", "history");
 
     let mut repl = Repl::newd(PS1, PS2, Some(hist));
 
     loop {
-        let cmd = repl.next(Color::White).unwrap();
+        let line = repl.next(Color::White).unwrap();
 
         let mut r = Res::new();
 
-        let args: Vec<&str> = cmd.split(' ').collect();
-        println!("cmd={}", args[0]);
-
-        if args[0] == "dice" {
-            let args = &args[1..];
-
-            let ds = match DiceSet::parse(args[0]) {
-                Ok(ds) => ds,
-                Err(e) => {
-                    println!("Error: {}", e);
-                    continue;
+        if let Ok((_null, cmd)) = all_consuming(parse_line)(&line).finish() {
+            match cmd {
+                Cmd::WithArg { op, args } => {
+                    let (_input, ds) = parse_with_bonus(args)?;
+                    println!("roll = {:?}", ds.roll(&mut r));
                 }
-            };
-
-            println!("roll = {:?}", ds.roll(&mut r));
+                _ => println!("Error: unknown command"),
+            }
         }
     }
+    Ok(())
 }
