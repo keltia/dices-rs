@@ -2,7 +2,7 @@
 name = "dices-rs"
 version = "0.5.1"
 authors = ["Ollivier Robert <roberto@keltia.net>"]
-description = "Small CLI utility to rtoll dices."
+description = "Small CLI utility to roll dices."
 edition = "2018"
 keywords = ["dice", "roll", "RPG", "roll", "random"]
 categories = ["game-development", "games"]
