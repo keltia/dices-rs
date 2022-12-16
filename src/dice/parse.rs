@@ -25,12 +25,9 @@ fn parse_dice(input: &str) -> IResult<&str, Dice> {
 #[inline]
 fn parse_ndices(input: &str) -> IResult<&str, DiceSet> {
     let into_set = |(n, d): (Option<std::primitive::u8>, Dice)| {
-        let n = match n {
-            None => 1,
-            Some(n) => n,
-        };
+        let n = n.unwrap_or(1);
         let v: Vec<Dice> = (1..=n).map(|_| d).collect();
-        DiceSet::from_vec(v.clone())
+        DiceSet::from_vec(v)
     };
     let r = pair(opt(u8), parse_dice);
     map(r, into_set)(input)
@@ -48,8 +45,7 @@ fn parse_bonus(input: &str) -> IResult<&str, std::primitive::i8> {
 }
 
 pub fn parse_with_bonus(input: &str) -> IResult<&str, DiceSet> {
-    let add_bonus = |(ds, b): (DiceSet, Option<std::primitive::i8>)| {
-        let mut ds = ds.clone();
+    let add_bonus = |(mut ds, b): (DiceSet, Option<std::primitive::i8>)| {
         if let Some(bonus) = b {
             ds.0.push(Dice::Bonus(bonus.into()))
         };

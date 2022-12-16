@@ -3,8 +3,10 @@
 //! All functions returns self to allow for chaining
 //!
 
+use std::fmt::{Display, Formatter};
+
 /// Holds a result which is all the rolls for a given set of dices.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Res {
     /// Store all the rolled dices
     pub list: Vec<usize>,
@@ -20,6 +22,13 @@ pub struct Res {
 impl Default for Res {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+/// Display trait
+impl Display for Res {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "total: {} - incl. bonus: {}", self.sum, self.bonus)
     }
 }
 

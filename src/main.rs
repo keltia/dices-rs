@@ -1,10 +1,25 @@
+mod cli;
+mod version;
+
+use crate::cli::Opts;
+use crate::version::version;
+
 use dices_rs::dice::{parse::parse_with_bonus, result::Res};
 
 use std::path::PathBuf;
 
-use anyhow::anyhow;
+use anyhow::{anyhow, Result};
+use clap::Parser;
 use home::home_dir;
+use log::{debug, error, info};
+use nom::{
+    character::complete::{alpha1, space0},
+    combinator::map,
+    sequence::preceded,
+    IResult,
+};
 use shelp::{Color, Repl};
+use stderrlog::LogLevelNum::{Debug, Info, Trace};
 
 const PS1: &str = "Dices> ";
 const PS2: &str = "..> ";
@@ -22,15 +37,9 @@ macro_rules! makepath {
     };
 }
 
-use nom::{
-    character::complete::{alpha1, space0},
-    combinator::map,
-    sequence::preceded,
-    IResult,
-};
-
 #[derive(Debug)]
 pub enum Cmd {
+    Doom,
     Invalid(String),
     Roll,
 }
@@ -39,6 +48,7 @@ pub enum Cmd {
 ///
 pub fn parse_keyword(input: &str) -> IResult<&str, Cmd> {
     let get_op = |s: &str| match s.to_ascii_lowercase().as_str() {
+        "doom" => Cmd::Doom,
         "dice" => Cmd::Roll,
         _ => Cmd::Invalid("unknown command".to_string()),
     };
@@ -46,44 +56,97 @@ pub fn parse_keyword(input: &str) -> IResult<&str, Cmd> {
     map(r, get_op)(input)
 }
 
+/// Generic roller
+///
+fn roll_from(input: &str) -> Result<Res> {
+    let mut r = Res::new();
+
+    let ds = match preceded(space0, parse_with_bonus)(input) {
+        Ok((_input, ds)) => {
+            debug!("{:?}", ds);
+            ds
+        }
+        Err(e) => {
+            error!("{:?}", e.to_string());
+            return Err(anyhow!("error parsing input"));
+        }
+    };
+    let res = ds.roll(&mut r).clone();
+    Ok(res)
+}
+
 /// Main entry point
 ///
 fn main() {
+    let opts: Opts = Opts::parse();
+
     let home = home_dir().unwrap();
     let hist = makepath!(home, ".config", "dices", "history");
 
+    // Add banner
+    //
+    println!("{}\n", version());
+
+    // Exit if needed
+    //
+    if opts.version {
+        std::process::exit(0);
+    }
+
+    // Check verbosity
+    //
+    let lvl = match opts.verbose {
+        0 => Info,
+        1 => Debug,
+        2 => Trace,
+        _ => Trace,
+    };
+
+    // If we use colours, use light/dark modes
+    //
+    let colour = if opts.dark {
+        Color::White
+    } else {
+        Color::Black
+    };
+
+    // Prepare logging.
+    //
+    stderrlog::new().verbosity(lvl).init().unwrap();
+
     let repl = Repl::newd(PS1, PS2, Some(hist));
 
-    for line in repl.iter(Color::White) {
-        let mut r = Res::new();
+    for line in repl.iter(colour) {
         let line = line.to_ascii_uppercase();
 
         let (input, cmd) = match parse_keyword(&line) {
             Ok((input, cmd)) => (input, cmd),
             Err(e) => {
-                println!("Error: {}", anyhow!("{}", e.to_string()));
+                error!("{:?}", anyhow!("{}", e.to_string()));
                 continue;
             }
         };
 
-        println!("{:?} - {}", cmd, input);
+        debug!("{:?} - {}", cmd, input);
 
-        match cmd {
-            Cmd::Roll => {
-                println!("now roll it!");
-                let ds = match preceded(space0, parse_with_bonus)(input) {
-                    Ok((_input, ds)) => {
-                        println!("{:?}", ds);
-                        ds
-                    }
-                    Err(e) => {
-                        println!("Error:{}", anyhow!("{}", e.to_string()));
-                        continue;
-                    }
-                };
-                println!("roll = {:?}", ds.roll(&mut r));
+        let res = match cmd {
+            Cmd::Doom => roll_from("3D6"),
+            Cmd::Roll => roll_from(input),
+            _ => {
+                error!("Error: unknown command");
+                continue;
             }
-            _ => println!("Error: unknown command"),
-        }
+        };
+
+        let res = match res {
+            Ok(res) => res,
+            Err(e) => {
+                error!("{}", anyhow!("{}", e.to_string()));
+                continue;
+            }
+        };
+
+        info!("roll = {}", res);
+        debug!("{:?}", res);
     }
 }

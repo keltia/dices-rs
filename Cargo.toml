@@ -1,8 +1,9 @@
 [package]
 name = "dices-rs"
-version = "0.5.1"
+version = "0.6.0"
 authors = ["Ollivier Robert <roberto@keltia.net>"]
-edition = "2018"
+description = "Small CLI utility to roll dices."
+edition = "2021"
 keywords = ["dice", "roll", "RPG", "roll", "random"]
 categories = ["game-development", "games"]
 repository = "https://github.com/keltia/dices-rs"
@@ -25,6 +26,7 @@ harness = false
 
 [dependencies]
 anyhow = "1.0.66"
+clap = { version = "4.0.29", features = ["derive", "cargo"] }
 home = "0.5.3"
 log = "0.4.17"
 nom = "7.1.1"
