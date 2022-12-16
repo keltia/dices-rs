@@ -335,7 +335,7 @@ dependencies = [
 
 [[package]]
 name = "dices-rs"
-version = "0.5.1"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "clap 4.0.29",
