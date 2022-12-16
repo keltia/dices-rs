@@ -6,7 +6,7 @@
 use std::fmt::{Display, Formatter};
 
 /// Holds a result which is all the rolls for a given set of dices.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Res {
     /// Store all the rolled dices
     pub list: Vec<usize>,
