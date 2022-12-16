@@ -117,13 +117,12 @@ fn main() {
     let repl = Repl::newd(PS1, PS2, Some(hist));
 
     for line in repl.iter(colour) {
-        let mut r = Res::new();
         let line = line.to_ascii_uppercase();
 
         let (input, cmd) = match parse_keyword(&line) {
             Ok((input, cmd)) => (input, cmd),
             Err(e) => {
-                error!("Error: {}", anyhow!("{}", e.to_string()));
+                error!("{:?}", anyhow!("{}", e.to_string()));
                 continue;
             }
         };
