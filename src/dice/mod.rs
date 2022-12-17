@@ -41,7 +41,7 @@
 //! ```
 
 use internal::internal_roll;
-use log::debug;
+use parse::parse_with_bonus;
 use result::Res;
 
 pub mod internal;
@@ -136,43 +136,12 @@ impl DiceSet {
     /// Parse a string with the following format:
     ///  `<n>*D<s>[ [+-]<b>+]`
     /// and return a `DiceSet` with `[n * Regular(s), Bonus(b)]`
+    ///
     pub fn parse(s: &str) -> Result<Self, String> {
-        let mut ds = Vec::<Dice>::new();
-        let mut bonus = 0;
-
-        let uv = s.to_uppercase();
-
-        // split between dice and bonus
-        let v: Vec<&str> = uv.split(' ').collect();
-        debug!("{:?}", v);
-
-        if v.len() == 2 {
-            bonus = v[1].parse::<isize>().unwrap_or_default();
+        match parse_with_bonus(s) {
+            Ok((_, ds)) => Ok(ds),
+            Err(e) => Err(e.to_string()),
         }
-
-        // split dice now
-        let mut d: Vec<&str> = v[0].split('D').collect();
-        debug!("{:?}", d);
-
-        // make it explicit that D6 is 1D6
-        d[0] = match d[0] {
-            "" => "1",
-            _ => d[0],
-        };
-
-        let times = d[0].parse::<usize>().unwrap_or_default();
-        let size = d[1].parse::<usize>().unwrap();
-
-        for _ in 0..times {
-            ds.push(Dice::Regular(size));
-        }
-
-        // Insert bonus now if needed
-        if bonus != 0 {
-            ds.push(Dice::Bonus(bonus));
-        }
-
-        Ok(DiceSet(ds))
     }
 }
 
