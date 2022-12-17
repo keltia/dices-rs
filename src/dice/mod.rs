@@ -136,6 +136,9 @@ impl DiceSet {
     /// Parse a string with the following format:
     ///  `<n>*D<s>[ [+-]<b>+]`
     /// and return a `DiceSet` with `[n * Regular(s), Bonus(b)]`
+    ///
+    /// XXX DEPRECATED
+    ///
     pub fn parse(s: &str) -> Result<Self, String> {
         let mut ds = Vec::<Dice>::new();
         let mut bonus = 0;
