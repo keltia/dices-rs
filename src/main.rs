@@ -18,11 +18,11 @@ use nom::{
     sequence::preceded,
     IResult,
 };
-use shelp::{Color, Repl};
+use rustyline::error::ReadlineError;
+use rustyline::Editor;
 use stderrlog::LogLevelNum::{Debug, Info, Trace};
 
 const PS1: &str = "Dices> ";
-const PS2: &str = "..> ";
 
 /// Simple macro to generate PathBuf from a series of entries
 ///
@@ -40,6 +40,7 @@ macro_rules! makepath {
 #[derive(Debug)]
 pub enum Cmd {
     Doom,
+    Exit,
     Invalid(String),
     Roll,
 }
@@ -50,6 +51,8 @@ pub fn parse_keyword(input: &str) -> IResult<&str, Cmd> {
     let get_op = |s: &str| match s.to_ascii_lowercase().as_str() {
         "doom" => Cmd::Doom,
         "dice" => Cmd::Roll,
+        "roll" => Cmd::Roll,
+        "exit" => Cmd::Exit,
         _ => Cmd::Invalid("unknown command".to_string()),
     };
     let r = alpha1;
@@ -75,13 +78,17 @@ fn roll_from(input: &str) -> Result<Res> {
     Ok(res)
 }
 
+fn parse_command(input: &str) -> IResult<&str, Cmd> {
+    parse_keyword(input)
+}
+
 /// Main entry point
 ///
-fn main() {
+fn main() -> Result<()> {
     let opts: Opts = Opts::parse();
 
     let home = home_dir().unwrap();
-    let hist = makepath!(home, ".config", "dices", "history");
+    let hist: PathBuf = makepath!(home, ".config", "dices", "history");
 
     // Add banner
     //
@@ -102,35 +109,49 @@ fn main() {
         _ => Trace,
     };
 
-    // If we use colours, use light/dark modes
-    //
-    let colour = if opts.dark {
-        Color::White
-    } else {
-        Color::Black
-    };
-
     // Prepare logging.
     //
     stderrlog::new().verbosity(lvl).init().unwrap();
 
-    let repl = Repl::newd(PS1, PS2, Some(hist));
+    // Setup readline
+    //
+    let mut repl = Editor::<()>::new()?;
 
-    for line in repl.iter(colour) {
-        let line = line.to_ascii_uppercase();
+    // Load history f there is one
+    //
+    if hist.exists() {
+        repl.load_history(&hist)?;
+    }
 
-        let (input, cmd) = match parse_keyword(&line) {
-            Ok((input, cmd)) => (input, cmd),
+    loop {
+        // Get next line
+        //
+        let line = match repl.readline(PS1) {
+            Ok(line) => line,
+            Err(ReadlineError::Interrupted) => break,
             Err(e) => {
-                error!("{:?}", anyhow!("{}", e.to_string()));
-                continue;
+                error!("{:?}", e);
+                break;
             }
+        };
+
+        // Save it
+        //
+        repl.add_history_entry(line.as_str());
+
+        // Get command name
+        //
+        let line = line.to_ascii_uppercase();
+        let (input, cmd) = match parse_command(&line) {
+            Ok((input, cmd)) => (input, cmd),
+            Err(_) => continue,
         };
 
         debug!("{:?} - {}", cmd, input);
 
         let res = match cmd {
             Cmd::Doom => roll_from("3D6"),
+            Cmd::Exit => break,
             Cmd::Roll => roll_from(input),
             _ => {
                 error!("Error: unknown command");
@@ -138,15 +159,14 @@ fn main() {
             }
         };
 
-        let res = match res {
-            Ok(res) => res,
-            Err(e) => {
-                error!("{}", anyhow!("{}", e.to_string()));
-                continue;
+        match res {
+            Ok(res) => {
+                info!("roll = {:?}", res);
+                debug!("{:?}", res);
             }
-        };
-
-        info!("roll = {}", res);
-        debug!("{:?}", res);
+            Err(e) => error!("{}", e.to_string()),
+        }
     }
+    repl.save_history(&hist)?;
+    Ok(())
 }

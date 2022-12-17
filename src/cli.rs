@@ -9,9 +9,6 @@ pub struct Opts {
     /// Verbose mode.
     #[clap(short = 'v', long, action = clap::ArgAction::Count)]
     pub verbose: u8,
-    /// Dark mode
-    #[clap(short = 'D', long)]
-    pub dark: bool,
     /// Display utility full version.
     #[clap(short = 'V', long)]
     pub version: bool,
