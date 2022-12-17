@@ -23,7 +23,6 @@ use rustyline::Editor;
 use stderrlog::LogLevelNum::{Debug, Info, Trace};
 
 const PS1: &str = "Dices> ";
-const PS2: &str = "..> ";
 
 /// Simple macro to generate PathBuf from a series of entries
 ///
