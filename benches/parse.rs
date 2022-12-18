@@ -29,7 +29,6 @@ pub fn parse(s: &str) -> Result<DiceSet, String> {
 
     // split between dice and bonus
     let v: Vec<&str> = uv.split(' ').collect();
-    debug!("{:?}", v);
 
     if v.len() == 2 {
         bonus = v[1].parse::<isize>().unwrap_or_default();
@@ -37,7 +36,6 @@ pub fn parse(s: &str) -> Result<DiceSet, String> {
 
     // split dice now
     let mut d: Vec<&str> = v[0].split('D').collect();
-    debug!("{:?}", d);
 
     // make it explicit that D6 is 1D6
     d[0] = match d[0] {
