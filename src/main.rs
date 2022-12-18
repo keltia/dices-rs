@@ -78,10 +78,6 @@ fn roll_from(input: &str) -> Result<Res> {
     Ok(res)
 }
 
-fn parse_command(input: &str) -> IResult<&str, Cmd> {
-    parse_keyword(input)
-}
-
 /// Main entry point
 ///
 fn main() -> Result<()> {
@@ -142,7 +138,7 @@ fn main() -> Result<()> {
         // Get command name
         //
         let line = line.to_ascii_uppercase();
-        let (input, cmd) = match parse_command(&line) {
+        let (input, cmd) = match parse_keyword(&line) {
             Ok((input, cmd)) => (input, cmd),
             Err(_) => continue,
         };
