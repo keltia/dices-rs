@@ -42,6 +42,7 @@ pub enum Cmd {
     Doom,
     Exit,
     Invalid(String),
+    Move,
     Roll,
 }
 
@@ -51,6 +52,8 @@ pub fn parse_keyword(input: &str) -> IResult<&str, Cmd> {
     let get_op = |s: &str| match s.to_ascii_lowercase().as_str() {
         "doom" => Cmd::Doom,
         "dice" => Cmd::Roll,
+        "mouv" => Cmd::Move,
+        "move" => Cmd::Move,
         "roll" => Cmd::Roll,
         "exit" => Cmd::Exit,
         _ => Cmd::Invalid("unknown command".to_string()),
@@ -147,6 +150,7 @@ fn main() -> Result<()> {
 
         let res = match cmd {
             Cmd::Doom => roll_from("3D6"),
+            Cmd::Move => roll_from("3D6 -9"),
             Cmd::Exit => break,
             Cmd::Roll => roll_from(input),
             _ => {
