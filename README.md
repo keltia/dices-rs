@@ -10,8 +10,8 @@ Branch: main  [![main](https://github.com/keltia/dices-rs/actions/workflows/rust
 
 Usual small Dice simulator for AD&D type of games.
 
-Previous unreleased version was a straight port of the Ruby code in https://bitbucket.org/keltia/addfh-utils (Using Mercurial),
-rewrittent before in Go (https://github.com/keltia/dices-go) and now rewritten to use Rust.
+Previous unreleased version was a straight port of the [Ruby] code in https://bitbucket.org/keltia/addfh-utils (Using Mercurial),
+rewritten before in [Go] [here](https://github.com/keltia/dices-go) and now rewritten to use [Rust].
 
 ## Installation
 
@@ -27,3 +27,6 @@ or get the source and build:
 
 The binary will be installed wherever it is defined on your machine and the library in `dice` itself will be compiled and available.
 
+[Go]: https://golang.org/
+[Ruby]: https://ruby-lang.org/
+[Rust]: https://rust-lang.org/
