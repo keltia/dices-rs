@@ -18,6 +18,7 @@
 //! ```
 //! use dices_rs::dice::Dice;
 //! use dices_rs::dice::result::Res;
+//! use dices_rs::dice::Rollable;
 //!
 //! let d = Dice::Regular(10);
 //!
