@@ -113,6 +113,7 @@ impl Rollable for Dice {
             }
             Dice::Bonus(s) => {
                 r.sum += s as usize;
+                r.bonus = s;
                 &mut r
             }
         };
