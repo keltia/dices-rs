@@ -191,11 +191,6 @@ mod tests {
         assert_eq!(0, r1.list.len());
         assert_eq!(1, r.list.len());
         assert_eq!(vec![6], r.list);
-
-        let r = d.roll();
-
-        assert_eq!(2, r.list.len());
-        assert_eq!(vec![6, 6], r.list);
     }
 
     #[test]
