@@ -95,8 +95,6 @@ impl Add for Res {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::dice::Dice;
-    use crate::dice::Dice::Regular;
 
     #[test]
     fn test_new() {
