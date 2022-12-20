@@ -4,6 +4,14 @@
 //!
 
 use std::fmt::{Display, Formatter};
+use std::ops::Add;
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum Special {
+    None,
+    Fumble,
+    Natural,
+}
 
 /// Holds a result which is all the rolls for a given set of dices.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -14,8 +22,8 @@ pub struct Res {
     pub sum: usize,
     /// If there is a malus/bonus to apply
     pub bonus: isize,
-    /// Assume all same dices
-    pub size: usize,
+    /// Special result?
+    pub flag: Special,
 }
 
 /// Allow for `.unwrap_or_default()` calls.
@@ -41,7 +49,7 @@ impl Res {
             list: Vec::new(),
             sum: 0,
             bonus: 0,
-            size: 6,
+            flag: Special::None,
         }
     }
 
@@ -57,24 +65,44 @@ impl Res {
         self.list.append(&mut r.list);
         self.sum += r.sum;
         self.bonus += r.bonus;
+        self.flag = Special::None;
         self
     }
 
     /// Do we have a "natural" result?
     pub fn natural(&self) -> bool {
-        self.list.len() == 1 && self.sum == self.size
+        self.list.len() == 1 && self.flag == Special::Natural
+    }
+}
+
+impl Add for Res {
+    type Output = Res;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let list = rhs.list.iter().fold(self.list, |mut c, e| {
+            c.push(*e);
+            c
+        });
+        Self {
+            sum: self.sum + rhs.sum,
+            bonus: self.bonus + rhs.bonus,
+            flag: Special::None,
+            list,
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::dice::Dice;
+    use crate::dice::Dice::Regular;
 
     #[test]
     fn test_new() {
         let a = Res::new();
 
-        assert_eq!(6, a.size);
+        assert_eq!(Special::None, a.flag);
     }
 
     #[test]
@@ -82,15 +110,13 @@ mod tests {
         let mut a = Res {
             list: vec![1],
             sum: 1,
-            bonus: 0,
-            size: 6,
+            ..Default::default()
         };
 
         let b = Res {
             list: vec![1, 2],
             sum: 3,
-            bonus: 0,
-            size: 6,
+            ..Default::default()
         };
 
         let r = a.append(2);
@@ -102,22 +128,19 @@ mod tests {
         let mut a = Res {
             list: vec![1],
             sum: 1,
-            bonus: 0,
-            size: 6,
+            ..Default::default()
         };
 
         let mut b = Res {
             list: vec![1, 2],
             sum: 3,
-            bonus: 0,
-            size: 6,
+            ..Default::default()
         };
 
         let r = Res {
             list: vec![1, 1, 2],
             sum: 4,
-            bonus: 0,
-            size: 6,
+            ..Default::default()
         };
 
         let e = a.merge(&mut b);
@@ -127,12 +150,36 @@ mod tests {
     }
 
     #[test]
+    fn test_add() {
+        let x = Res {
+            list: vec![9, 6],
+            sum: 15,
+            bonus: 0,
+            ..Default::default()
+        };
+        let y = Res {
+            list: vec![],
+            sum: 0,
+            bonus: -9,
+            ..Default::default()
+        };
+
+        let s = x + y;
+        let t = Res {
+            list: vec![9, 6],
+            sum: 15,
+            bonus: -9,
+            ..Default::default()
+        };
+        assert_eq!(t, s);
+    }
+
+    #[test]
     fn test_natural() {
         let a = Res {
             list: vec![1],
             sum: 1,
-            bonus: 0,
-            size: 6,
+            ..Default::default()
         };
 
         assert!(!a.natural());
@@ -140,10 +187,19 @@ mod tests {
         let b = Res {
             list: vec![6],
             sum: 6,
-            bonus: 0,
-            size: 6,
+            flag: Special::Natural,
+            ..Default::default()
         };
 
         assert!(b.natural());
+
+        let b = Res {
+            list: vec![3, 3],
+            sum: 6,
+            flag: Special::None,
+            ..Default::default()
+        };
+
+        assert!(!b.natural());
     }
 }
