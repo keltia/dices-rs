@@ -4,7 +4,7 @@ mod version;
 use crate::cli::Opts;
 use crate::version::version;
 
-use dices_rs::dice::{parse::parse_with_bonus, result::Res};
+use dices_rs::dice::{parse::parse_with_bonus, result::Res, Rollable};
 
 use std::path::PathBuf;
 
@@ -65,8 +65,6 @@ pub fn parse_keyword(input: &str) -> IResult<&str, Cmd> {
 /// Generic roller
 ///
 fn roll_from(input: &str) -> Result<Res> {
-    let mut r = Res::new();
-
     let ds = match preceded(space0, parse_with_bonus)(input) {
         Ok((_input, ds)) => {
             debug!("{:?}", ds);
@@ -77,7 +75,7 @@ fn roll_from(input: &str) -> Result<Res> {
             return Err(anyhow!("error parsing input"));
         }
     };
-    let res = ds.roll(&mut r).clone();
+    let res = ds.roll().clone();
     Ok(res)
 }
 
