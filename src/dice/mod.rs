@@ -18,28 +18,28 @@
 //! ```
 //! use dices_rs::dice::Dice;
 //! use dices_rs::dice::result::Res;
+//! use dices_rs::dice::Rollable;
 //!
 //! let d = Dice::Regular(10);
-//! let mut r = Res::new();
 //!
-//! println!("{:#?}", d.roll(&mut r));
+//! println!("{:#?}", d.roll());
 //! ```
 //!
 //! We define a `Res` variable in order to allow method chaining.
 //!
 //! ```
-//! use dices_rs::dice::DiceSet;
+//! use dices_rs::dice::{DiceSet, Rollable};
 //! use dices_rs::dice::result::Res;
 //!
 //! let ds = match DiceSet::parse("3D6 +1") {
 //!     Ok(ds) => ds,
 //!     Err(e) => panic!("Error: {}", e)
 //! };
-//! let mut r = Res::new();
 //!
-//! println!("{:#?}", ds.roll(&mut r));
+//! println!("{:#?}", ds.roll());
 //! ```
 
+use crate::dice::result::Special;
 use internal::internal_roll;
 use parse::parse_with_bonus;
 use result::Res;
@@ -48,48 +48,77 @@ pub mod internal;
 pub mod parse;
 pub mod result;
 
+/// Is this thing a Dice or DiceSet?
+///
+pub trait Rollable {
+    fn roll(&self) -> Res;
+}
+
 /// Our different types of `Dice`.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Dice {
     /// Always yield the same result
     Constant(usize),
-    /// A dice that will retoll by itself if roll is max
+    /// A dice that will re-roll by itself if roll is max
     Open(usize),
     /// Your regular type of dice
     Regular(usize),
-    /// Used to register any bonus
+    /// Used to register any bonus, same as a Regular but easier to spot
     Bonus(isize),
 }
 
 /// Implement the dice methods
 impl Dice {
-    /// Implement `roll()` for each type of dices
-    pub fn roll<'a>(&self, r: &'a mut Res) -> &'a mut Res {
-        let mut res = match *self {
-            Dice::Constant(s) => r.append(s),
-            Dice::Regular(s) => r.append(internal_roll(s)),
-            Dice::Open(s) => {
-                if r.sum >= s {
-                    r
-                } else {
-                    r.merge(self.roll(&mut Res::new()))
-                }
-            }
-            Dice::Bonus(s) => {
-                r.sum += s as usize;
-                r
-            }
-        };
-        res.size = self.size();
-        res
-    }
-
     /// Return the size of a dice
-    fn size(&self) -> usize {
-        match *self {
+    ///
+    pub fn size(self) -> usize {
+        match self {
             Dice::Constant(s) | Dice::Regular(s) | Dice::Open(s) => s,
             Dice::Bonus(_) => 0,
         }
+    }
+}
+
+impl Rollable for Dice {
+    /// Implement `roll()` for each type of dices
+    ///
+    fn roll(&self) -> Res {
+        let mut r = Res::new();
+
+        let r = match *self {
+            Dice::Constant(s) => r.append(s),
+            Dice::Regular(s) => {
+                let rr = match internal_roll(s) {
+                    1 => {
+                        r.flag = Special::Fumble;
+                        1
+                    }
+                    s => {
+                        r.flag = Special::Natural;
+                        s
+                    }
+                };
+                r.append(rr)
+            }
+            Dice::Open(s) => {
+                // While roll is size
+                //
+                loop {
+                    let res = internal_roll(s);
+                    r.append(res);
+                    if res != s {
+                        break;
+                    }
+                }
+                &mut r
+            }
+            Dice::Bonus(s) => {
+                r.sum += s as usize;
+                r.bonus = s;
+                &mut r
+            }
+        };
+        r.clone()
     }
 }
 
@@ -113,26 +142,6 @@ impl DiceSet {
         self
     }
 
-    /// The real stuff, roll every dice in the set and add all rolls
-    pub fn roll<'a>(&self, r: &'a mut Res) -> &'a mut Res {
-        let mut r1 = r;
-
-        for dice in &self.0 {
-            match dice {
-                Dice::Regular(_) | Dice::Open(_) => {
-                    r1 = dice.roll(r1);
-                }
-                Dice::Constant(c) => {
-                    r1.sum += *c;
-                }
-                Dice::Bonus(b) => {
-                    r1.bonus += *b;
-                }
-            }
-        }
-        r1
-    }
-
     /// Parse a string with the following format:
     ///  `<n>*D<s>[ [+-]<b>+]`
     /// and return a `DiceSet` with `[n * Regular(s), Bonus(b)]`
@@ -142,6 +151,19 @@ impl DiceSet {
             Ok((_, ds)) => Ok(ds),
             Err(e) => Err(e.to_string()),
         }
+    }
+}
+
+impl Rollable for DiceSet {
+    /// Get all Res and sum them
+    ///
+    fn roll(&self) -> Res {
+        let res = self
+            .0
+            .iter()
+            .map(|d| d.roll())
+            .fold(Res::new(), |acc, r| acc + r);
+        res.clone()
     }
 }
 
@@ -160,23 +182,16 @@ mod tests {
     #[test]
     fn test_constant_roll() {
         let d = Dice::Constant(6);
+
         let mut r1 = Res::new();
         r1.sum = 6;
 
-        let mut r = Res::new();
+        let r = d.roll();
 
-        let r = d.roll(&mut r);
-
-        println!("{:?}", r);
         assert_eq!(r.sum, r1.sum);
         assert_eq!(0, r1.list.len());
         assert_eq!(1, r.list.len());
         assert_eq!(vec![6], r.list);
-
-        let r = d.roll(r);
-
-        assert_eq!(2, r.list.len());
-        assert_eq!(vec![6, 6], r.list);
     }
 
     #[test]
@@ -189,12 +204,8 @@ mod tests {
     #[test]
     fn test_reg_roll() {
         let d = Dice::Regular(6);
-        let mut r = Res::new();
 
-        assert_eq!(0, r.list.len());
-        assert_eq!(0, r.sum);
-
-        let r = d.roll(&mut r);
+        let r = d.roll();
 
         assert_eq!(1, r.list.len());
         assert_ne!(0, r.sum);
@@ -210,36 +221,31 @@ mod tests {
 
     #[test]
     fn test_open_roll() {
-        let d = Dice::Regular(6);
-        let mut r = Res::new();
+        let d = Dice::Open(6);
 
-        assert_eq!(0, r.list.len());
-        assert_eq!(0, r.sum);
+        let r = d.roll();
 
-        let r = d.roll(&mut r);
-
-        assert_eq!(1, r.list.len());
-        assert_ne!(0, r.sum);
-        assert!(r.sum <= 6);
-
-        let r = d.roll(r);
-
-        assert_eq!(2, r.list.len());
-        println!("{:#?}", r);
-        assert!(r.sum >= 2 && r.sum <= 12)
+        match r.list.len() {
+            1 => {
+                assert_eq!(1, r.list.len());
+                assert_ne!(0, r.sum);
+                assert!(r.sum <= 6);
+            }
+            _ => {
+                let l = r.list.len();
+                assert!(l > 1);
+                assert!(r.sum < l * d.size());
+            }
+        }
     }
 
     #[test]
     fn test_dice_const() {
-        let die = Dice::Constant(4);
-        let mut r = Res::new();
+        let d = Dice::Constant(4);
 
-        let r = die.roll(&mut r);
-
-        println!("{:#?}", r);
+        let r = d.roll();
 
         assert_eq!(4, r.sum);
-        assert_eq!(4, r.size);
         assert_eq!(0, r.bonus);
     }
 
@@ -249,14 +255,10 @@ mod tests {
         let d2 = Dice::Regular(10);
         let d3 = Dice::Bonus(2);
 
-        let v = DiceSet(vec![d1, d2, d3]);
+        let v = DiceSet::from_vec(vec![d1, d2, d3]);
 
-        println!("{:#?}", v);
+        let r = v.roll();
 
-        let mut r = Res::new();
-
-        let r = v.roll(&mut r);
-        println!("{:#?}", r);
         assert!(r.sum >= 4 && r.sum <= 22);
         assert_eq!(2, r.list.len());
         assert_eq!(2, r.bonus);
@@ -286,8 +288,7 @@ mod tests {
             Dice::Bonus(1),
         ]);
 
-        let mut r = Res::new();
-        let r = rf.roll(&mut r);
+        let r = rf.roll();
 
         assert_eq!(1, r.bonus);
         assert_eq!(3, r.list.len())

@@ -1,23 +1,17 @@
 mod cli;
+mod cmds;
 mod version;
 
 use crate::cli::Opts;
+use crate::cmds::{parse_keyword, roll_from, roll_open, Cmd};
 use crate::version::version;
-
-use dices_rs::dice::{parse::parse_with_bonus, result::Res};
 
 use std::path::PathBuf;
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use clap::Parser;
 use home::home_dir;
 use log::{debug, error, info};
-use nom::{
-    character::complete::{alpha1, space0},
-    combinator::map,
-    sequence::preceded,
-    IResult,
-};
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 use stderrlog::LogLevelNum::{Debug, Info, Trace};
@@ -35,51 +29,6 @@ macro_rules! makepath {
         .iter()
         .collect()
     };
-}
-
-#[derive(Debug)]
-pub enum Cmd {
-    Doom,
-    Exit,
-    Invalid(String),
-    Roll,
-}
-
-/// Parse a keyword, return the operation
-///
-pub fn parse_keyword(input: &str) -> IResult<&str, Cmd> {
-    let get_op = |s: &str| match s.to_ascii_lowercase().as_str() {
-        "doom" => Cmd::Doom,
-        "dice" => Cmd::Roll,
-        "roll" => Cmd::Roll,
-        "exit" => Cmd::Exit,
-        _ => Cmd::Invalid("unknown command".to_string()),
-    };
-    let r = alpha1;
-    map(r, get_op)(input)
-}
-
-/// Generic roller
-///
-fn roll_from(input: &str) -> Result<Res> {
-    let mut r = Res::new();
-
-    let ds = match preceded(space0, parse_with_bonus)(input) {
-        Ok((_input, ds)) => {
-            debug!("{:?}", ds);
-            ds
-        }
-        Err(e) => {
-            error!("{:?}", e.to_string());
-            return Err(anyhow!("error parsing input"));
-        }
-    };
-    let res = ds.roll(&mut r).clone();
-    Ok(res)
-}
-
-fn parse_command(input: &str) -> IResult<&str, Cmd> {
-    parse_keyword(input)
 }
 
 /// Main entry point
@@ -142,16 +91,27 @@ fn main() -> Result<()> {
         // Get command name
         //
         let line = line.to_ascii_uppercase();
-        let (input, cmd) = match parse_command(&line) {
+        let (input, cmd) = match parse_keyword(&line) {
             Ok((input, cmd)) => (input, cmd),
             Err(_) => continue,
         };
 
         debug!("{:?} - {}", cmd, input);
 
+        // Identify and execute each command
+        // Short one may be inserted here directly
+        // otherwise put them in `cmds.rs`
+        //
         let res = match cmd {
-            Cmd::Doom => roll_from("3D6"),
+            // Shortcut to exit
             Cmd::Exit => break,
+            // Dices of Doom alias
+            Cmd::Doom => roll_from("3D6"),
+            // Movement dice
+            Cmd::Move => roll_from("3D6 -9"),
+            // Open-ended dices
+            Cmd::Open => roll_open(input),
+            // Regular roll
             Cmd::Roll => roll_from(input),
             _ => {
                 error!("Error: unknown command");

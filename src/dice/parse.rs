@@ -16,8 +16,15 @@ use nom::{
 use crate::dice::{Dice, DiceSet};
 
 #[inline]
-fn parse_dice(input: &str) -> IResult<&str, Dice> {
+pub fn parse_dice(input: &str) -> IResult<&str, Dice> {
     let into_dice = |s: u32| Dice::Regular(s as usize);
+    let r = preceded(tag("D"), u32);
+    map(r, into_dice)(input)
+}
+
+#[inline]
+pub fn parse_open(input: &str) -> IResult<&str, Dice> {
+    let into_dice = |s: u32| Dice::Open(s as usize);
     let r = preceded(tag("D"), u32);
     map(r, into_dice)(input)
 }
