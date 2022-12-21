@@ -71,7 +71,7 @@ pub enum Dice {
 impl Dice {
     /// Return the size of a dice
     ///
-    fn size(self) -> usize {
+    pub fn size(self) -> usize {
         match self {
             Dice::Constant(s) | Dice::Regular(s) | Dice::Open(s) => s,
             Dice::Bonus(_) => 0,
