@@ -8,7 +8,7 @@ use crate::version::version;
 
 use std::path::PathBuf;
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use clap::Parser;
 use home::home_dir;
 use log::{debug, error, info};
@@ -98,10 +98,20 @@ fn main() -> Result<()> {
 
         debug!("{:?} - {}", cmd, input);
 
+        // Identify and execute each command
+        // Short one may be inserted here directly
+        // otherwise put them in `cmds.rs`
+        //
         let res = match cmd {
-            Cmd::Doom => roll_from("3D6"),
-            Cmd::Move => roll_from("3D6 -9"),
+            // Shortcut to exit
             Cmd::Exit => break,
+            // Dices of Doom alias
+            Cmd::Doom => roll_from("3D6"),
+            // Movement dice
+            Cmd::Move => roll_from("3D6 -9"),
+            // Open-ended dices
+            Cmd::Open => roll_open(input),
+            // Regular roll
             Cmd::Roll => roll_from(input),
             _ => {
                 error!("Error: unknown command");
