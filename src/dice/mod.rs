@@ -242,7 +242,7 @@ mod tests {
             _ => {
                 let l = r.list.len();
                 assert!(l > 1);
-                assert!(r.sum < l * d.size());
+                assert!(r.sum < (l * d.size()) as isize);
             }
         }
     }
