@@ -55,8 +55,7 @@ pub fn roll_from(input: &str) -> Result<Res> {
             return Err(anyhow!("error parsing input"));
         }
     };
-    let res = ds.roll().clone();
-    Ok(res)
+    Ok(ds.roll())
 }
 
 /// Generic open dice roller
@@ -72,6 +71,5 @@ pub fn roll_open(input: &str) -> Result<Res> {
             return Err(anyhow!("error parsing input"));
         }
     };
-    let res = d.roll().clone();
-    Ok(res)
+    Ok(d.roll())
 }

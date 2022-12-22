@@ -171,7 +171,7 @@ impl Rollable for DiceSet {
             .iter()
             .map(|d| d.roll())
             .fold(Res::new(), |acc, r| acc + r);
-        res.clone()
+        res
     }
 }
 
