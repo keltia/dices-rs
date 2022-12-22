@@ -44,7 +44,7 @@ use internal::internal_roll;
 use parse::parse_with_bonus;
 use result::Res;
 
-pub mod internal;
+mod internal;
 pub mod parse;
 pub mod result;
 
