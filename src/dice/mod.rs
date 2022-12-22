@@ -106,6 +106,14 @@ impl Rollable for Dice {
                 loop {
                     let res = internal_roll(s);
                     r.append(res);
+                    // Check for first roll only
+                    //
+                    if res == 1 && r.sum == 1 {
+                        r.flag = Special::Fumble;
+                        break;
+                    }
+                    // Not max, stop
+                    //
                     if res != s {
                         break;
                     }
