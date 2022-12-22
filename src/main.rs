@@ -13,8 +13,9 @@ use anyhow::Result;
 use clap::Parser;
 use home::home_dir;
 use log::{debug, error, info};
-use rustyline::error::ReadlineError;
-use rustyline::Editor;
+use rustyline::{
+    config::BellStyle::Visible, error::ReadlineError, CompletionType::List, Config, Editor,
+};
 use stderrlog::LogLevelNum::{Debug, Info, Trace};
 
 const PS1: &str = "Dices> ";
@@ -65,7 +66,13 @@ fn main() -> Result<()> {
 
     // Setup readline
     //
-    let mut repl = Editor::<()>::new()?;
+    let cfg = Config::builder()
+        .completion_type(List)
+        .history_ignore_dups(true)
+        .history_ignore_space(true)
+        .bell_style(Visible)
+        .build();
+    let mut repl = Editor::<()>::with_config(cfg)?;
 
     // Load history f there is one
     //
