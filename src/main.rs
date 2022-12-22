@@ -1,5 +1,6 @@
 mod cli;
 mod cmds;
+mod complete;
 mod version;
 
 use crate::cli::Opts;
