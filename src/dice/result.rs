@@ -19,7 +19,7 @@ pub struct Res {
     /// Store all the rolled dices
     pub list: Vec<usize>,
     /// Sum of all dices
-    pub sum: usize,
+    pub sum: isize,
     /// If there is a malus/bonus to apply
     pub bonus: isize,
     /// Special result?
@@ -56,7 +56,7 @@ impl Res {
     /// Add one result to a set
     pub fn append(&mut self, v: usize) -> &mut Self {
         self.list.push(v);
-        self.sum += v;
+        self.sum += v as isize;
         self
     }
 
