@@ -114,8 +114,10 @@ fn main() -> Result<()> {
             // Shortcut to exit
             Cmd::Exit => break,
             // Dices of Doom alias
+            // TODO: make it a real alias
             Cmd::Doom => roll_from("2D6"),
             // Movement dice
+            // TODO: allow bonus
             Cmd::Move => roll_from("3D6 -9"),
             // Open-ended dices
             Cmd::Open => roll_open(input),
