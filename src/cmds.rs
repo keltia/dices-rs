@@ -25,6 +25,21 @@ pub enum Cmd {
     Roll,
 }
 
+impl From<&str> for Cmd {
+    /// Return the command associated with the keyword (excluding aliases)
+    ///
+    fn from(value: &str) -> Self {
+        match value {
+            "doom" => Cmd::Doom,
+            "exit" => Cmd::Exit,
+            "move" => Cmd::Move,
+            "open" => Cmd::Open,
+            "roll" => Cmd::Roll,
+            _ => Cmd::Invalid("unknown command".to_string()),
+        }
+    }
+}
+
 /// Parse a keyword, return the operation
 ///
 pub fn parse_keyword(input: &str) -> IResult<&str, Cmd> {
