@@ -15,7 +15,7 @@ use nom::{
 
 /// List of existing commands
 ///
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum Cmd {
     Doom,
     Exit,
