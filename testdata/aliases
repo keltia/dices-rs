@@ -1,0 +1,6 @@
+# define a new command
+doom = "2D6"
+! this is an alias
+rulez = dice
+// and another one
+roll = dice
