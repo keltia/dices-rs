@@ -165,21 +165,21 @@ fn main() -> Result<()> {
 
         debug!("{:?} - {}", name, input);
 
-        let cmd = validate_command(&commands, &name);
+        let cmd = validate_command(&commands, &name)?;
+
+        debug!("{:?}", cmd);
+
+        // Shortcut to exit
+        //
+        if cmd == Command::Exit {
+            break;
+        }
 
         // Identify and execute each command
         // Short one may be inserted here directly
         // otherwise put them in `cmds.rs`
         //
         let res = match cmd {
-            // Shortcut to exit
-            Cmd::Exit => break,
-            // Dices of Doom alias
-            // TODO: make it a real alias
-            Cmd::Doom => roll_from("2D6"),
-            // Movement dice
-            // TODO: allow bonus
-            Cmd::Move => roll_from("3D6 -9"),
             // Open-ended dices
             Cmd::Open => roll_open(input),
             // Regular roll

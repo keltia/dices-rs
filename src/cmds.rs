@@ -21,6 +21,8 @@ pub enum Command {
     Alias { name: String, cmd: Cmd },
     /// Comment
     Comment,
+    /// End of the game
+    Exit,
 }
 
 /// List of builtin commands
@@ -64,13 +66,17 @@ pub fn builtin_commands() -> HashMap<String, Command> {
     let all: Vec<(String, Command)> = CMDS
         .iter()
         .map(|&n| {
-            (
-                n.to_string(),
-                Command::Builtin {
-                    name: n.to_string(),
-                    cmd: Cmd::from(n),
-                },
-            )
+            if n == "exit" {
+                ("exit".to_string(), Command::Exit)
+            } else {
+                (
+                    n.to_string(),
+                    Command::Builtin {
+                        name: n.to_string(),
+                        cmd: Cmd::from(n),
+                    },
+                )
+            }
         })
         .collect();
     HashMap::<String, Command>::from_iter(all)
