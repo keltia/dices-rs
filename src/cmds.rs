@@ -19,10 +19,9 @@ use nom::{
 pub enum Cmd {
     Doom,
     Exit,
-    Invalid(String),
+    Invalid,
     Move,
     Open,
-    Roll,
 }
 
 impl From<&str> for Cmd {
@@ -30,6 +29,7 @@ impl From<&str> for Cmd {
     ///
     fn from(value: &str) -> Self {
         match value {
+            "dice" => Cmd::Dice,
             "doom" => Cmd::Doom,
             "exit" => Cmd::Exit,
             "move" => Cmd::Move,
@@ -45,11 +45,11 @@ impl From<&str> for Cmd {
 pub fn parse_keyword(input: &str) -> IResult<&str, Cmd> {
     let get_op = |s: &str| match s.to_ascii_lowercase().as_str() {
         "doom" => Cmd::Doom,
-        "dice" => Cmd::Roll,
+        "dice" => Cmd::Dice,
         "mouv" => Cmd::Move,
         "move" => Cmd::Move,
         "open" => Cmd::Open,
-        "roll" => Cmd::Roll,
+        "roll" => Cmd::Dice,
         "exit" => Cmd::Exit,
         _ => Cmd::Invalid("unknown command".to_string()),
     };
