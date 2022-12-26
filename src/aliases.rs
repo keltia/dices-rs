@@ -13,7 +13,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use anyhow::Result;
-use log::debug;
+use log::{debug, trace};
 use nom::{
     branch::alt,
     bytes::complete::{is_not, tag},
@@ -37,6 +37,7 @@ pub enum Alias {
 /// Parse a comment introduced by one of #, // and ! followed by a space
 ///
 fn parse_comment(input: &str) -> IResult<&str, Alias> {
+    trace!("parse_comment");
     let ret_comment = |_s: &str| Alias::Comment;
     let r = terminated(
         alt((tag("#"), tag("//"), tag("!"))),
@@ -51,8 +52,9 @@ fn parse_comment(input: &str) -> IResult<&str, Alias> {
 /// - new command new = "3D4"
 ///
 fn parse_alias(input: &str) -> IResult<&str, Alias> {
+    trace!("parse_alias");
     let check = |(first, second): (&str, &str)| {
-        dbg!(&second);
+        trace!("{}", second);
         let cmd = Cmd::from(second);
 
         // If the command is invalid, we have a new command, not an alias
@@ -79,6 +81,7 @@ fn parse_alias(input: &str) -> IResult<&str, Alias> {
 /// Parse the new command
 ///
 fn parse_string(input: &str) -> IResult<&str, &str> {
+    trace!("parse_string");
     delimited(one_of("\"'"), is_not("\""), one_of("\"'"))(input)
 }
 
