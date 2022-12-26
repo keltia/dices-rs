@@ -142,7 +142,7 @@ mod tests {
         let al = vec![
             Alias::New {
                 name: "doom".to_string(),
-                cmd: "2D6".to_string(),
+                cmd: "dice 2D6".to_string(),
             },
             Alias::Cmd {
                 name: "rulez".to_string(),
@@ -151,6 +151,10 @@ mod tests {
             Alias::Cmd {
                 name: "roll".to_string(),
                 cmd: Cmd::Dice,
+            },
+            Alias::New {
+                name: "mouv".to_string(),
+                cmd: "move +7".to_string(),
             },
         ];
 

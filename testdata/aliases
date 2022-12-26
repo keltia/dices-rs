@@ -4,3 +4,5 @@ doom = "dice 2D6"
 rulez = dice
 // and another one
 roll = dice
+# new command with argument
+mouv = "move +7"
