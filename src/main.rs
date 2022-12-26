@@ -1,8 +1,10 @@
+mod aliases;
 mod cli;
 mod cmds;
 mod complete;
 mod version;
 
+use crate::aliases::load_aliases;
 use crate::cli::Opts;
 use crate::cmds::{parse_keyword, roll_from, roll_open, Cmd};
 use crate::version::version;
@@ -79,11 +81,27 @@ fn main() -> Result<()> {
         .build();
     let mut repl = Editor::<()>::with_config(cfg)?;
 
-    // Load history f there is one
+    // Check whether we supplied an alias file on CLI
+    //
+    let alias = match opts.alias_file {
+        Some(fname) => PathBuf::from(fname),
+        _ => def_alias,
+    };
+
+    // Load history if there is one
     //
     if hist.exists() {
         repl.load_history(&hist)?;
     }
+
+    // Load aliases if there is one
+    //
+    let aliases = match alias.exists() {
+        true => load_aliases(alias)?,
+        false => vec![],
+    };
+
+    debug!("aliases = {:?}", aliases);
 
     loop {
         // Get next line
