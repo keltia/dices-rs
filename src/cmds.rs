@@ -27,10 +27,15 @@ pub enum Command {
 ///
 #[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd)]
 pub enum Cmd {
+    /// Roll of dices
     Dice,
-    Doom,
+    /// End of program
     Exit,
+    /// Invalid command
     Invalid,
+    /// Define a new command
+    New,
+    /// Roll an open dice
     Open,
 }
 
@@ -41,6 +46,7 @@ impl From<&str> for Cmd {
         match value {
             "dice" => Cmd::Dice,
             "exit" => Cmd::Exit,
+            "new" => Cmd::New,
             "open" => Cmd::Open,
             _ => Cmd::Invalid,
         }
