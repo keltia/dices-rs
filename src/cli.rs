@@ -6,6 +6,9 @@ use clap::{crate_authors, crate_description, crate_name, crate_version, Parser};
 #[clap(name = crate_name!(), about = crate_description!())]
 #[clap(version = crate_version!(), author = crate_authors!())]
 pub struct Opts {
+    /// Alias file
+    #[clap(short = 'A', long)]
+    pub alias_file: Option<String>,
     /// Verbose mode.
     #[clap(short = 'v', long, action = clap::ArgAction::Count)]
     pub verbose: u8,
