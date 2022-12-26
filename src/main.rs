@@ -71,6 +71,8 @@ fn main() -> Result<()> {
     //
     stderrlog::new().verbosity(lvl).init().unwrap();
 
+    debug!("Load config...");
+
     // Setup readline
     //
     let cfg = Config::builder()
@@ -91,6 +93,7 @@ fn main() -> Result<()> {
     // Load history if there is one
     //
     if hist.exists() {
+        debug!("Load history from {:?}...", hist);
         repl.load_history(&hist)?;
     }
 
