@@ -127,6 +127,16 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_string() {
+        let a = "\"this is a string\"";
+
+        let r = parse_string(a);
+        assert!(r.is_ok());
+        let (_input, r) = r.unwrap();
+        assert_eq!("this is a string", r);
+    }
+
+    #[test]
     fn test_load_aliases() {
         let fname: PathBuf = makepath!("testdata", "aliases");
         let al = vec![
