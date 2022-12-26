@@ -34,8 +34,7 @@ impl From<&str> for Cmd {
             "exit" => Cmd::Exit,
             "move" => Cmd::Move,
             "open" => Cmd::Open,
-            "roll" => Cmd::Roll,
-            _ => Cmd::Invalid("unknown command".to_string()),
+            _ => Cmd::Invalid,
         }
     }
 }
@@ -51,7 +50,7 @@ pub fn parse_keyword(input: &str) -> IResult<&str, Cmd> {
         "open" => Cmd::Open,
         "roll" => Cmd::Dice,
         "exit" => Cmd::Exit,
-        _ => Cmd::Invalid("unknown command".to_string()),
+        _ => Cmd::Invalid,
     };
     let r = alpha1;
     map(r, get_op)(input)
