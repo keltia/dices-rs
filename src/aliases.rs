@@ -13,6 +13,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use anyhow::Result;
+use log::debug;
 use nom::{
     branch::alt,
     bytes::complete::{is_not, tag},
@@ -82,6 +83,7 @@ fn parse_string(input: &str) -> IResult<&str, &str> {
 }
 
 pub fn load_aliases(fname: PathBuf) -> Result<Vec<Alias>> {
+    debug!("Reading {:?} file...", fname);
     let content = fs::read_to_string(fname)?;
 
     let list: Vec<Alias> = content
