@@ -78,7 +78,7 @@ fn parse_alias(input: &str) -> IResult<&str, Alias> {
 /// Parse the new command
 ///
 fn parse_string(input: &str) -> IResult<&str, &str> {
-    delimited(one_of("\"'"), is_not(" \""), one_of("\"'"))(input)
+    delimited(one_of("\"'"), is_not("\""), one_of("\"'"))(input)
 }
 
 pub fn load_aliases(fname: PathBuf) -> Result<Vec<Alias>> {
