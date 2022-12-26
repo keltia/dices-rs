@@ -105,6 +105,24 @@ pub fn load_aliases(fname: PathBuf) -> Result<Vec<Alias>> {
     Ok(list)
 }
 
+/// Define some builtin aliases
+///
+pub fn builtin_aliases() -> Vec<Alias> {
+    trace!("builtin_aliases");
+    vec![
+        // Dices od Doom
+        Alias::New {
+            name: "doom".to_string(),
+            cmd: "dice 2D6".to_string(),
+        },
+        // Roll as Dice
+        Alias::Cmd {
+            name: "roll".to_string(),
+            cmd: Cmd::Dice,
+        },
+    ]
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
