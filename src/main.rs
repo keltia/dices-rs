@@ -145,7 +145,7 @@ fn main() -> Result<()> {
             // Open-ended dices
             Cmd::Open => roll_open(input),
             // Regular roll
-            Cmd::Roll => roll_from(input),
+            Cmd::Dice => roll_from(input),
             _ => {
                 error!("Error: unknown command");
                 continue;
