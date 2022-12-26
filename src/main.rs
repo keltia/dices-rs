@@ -18,6 +18,10 @@ use rustyline::{
 };
 use stderrlog::LogLevelNum::{Debug, Info, Trace};
 
+const BASE_DIR: &str = ".config";
+const ALIASES_FILE: &str = "aliases";
+const HISTORY_FILE: &str = "history";
+
 const PS1: &str = "Dices> ";
 
 /// Simple macro to generate PathBuf from a series of entries
@@ -39,7 +43,8 @@ fn main() -> Result<()> {
     let opts: Opts = Opts::parse();
 
     let home = home_dir().unwrap();
-    let hist: PathBuf = makepath!(home, ".config", "dices", "history");
+    let hist: PathBuf = makepath!(&home, BASE_DIR, "dices", HISTORY_FILE);
+    let def_alias: PathBuf = makepath!(&home, BASE_DIR, "dices", ALIASES_FILE);
 
     // Add banner
     //
