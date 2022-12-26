@@ -45,13 +45,13 @@ const CMDS: [&str; 4] = ["dice", "exit", "open", "invalid"];
 
 /// Build a list of "aliases" from the builtin commands
 ///
-pub fn builtin_commands() -> HashMap<Cmd, Alias> {
+pub fn builtin_commands() -> HashMap<String, Alias> {
     debug!("builtin_commands");
     let all: Vec<(Cmd, Alias)> = CMDS
         .iter()
         .map(|&n| {
             (
-                Cmd::from(n),
+                n.to_string(),
                 Alias::Command {
                     name: n.to_string(),
                     cmd: Cmd::from(n),
@@ -59,7 +59,7 @@ pub fn builtin_commands() -> HashMap<Cmd, Alias> {
             )
         })
         .collect();
-    HashMap::<Cmd, Alias>::from_iter(all)
+    HashMap::<String, Alias>::from_iter(all)
 }
 
 /// Parse a keyword, return the operation
@@ -119,30 +119,30 @@ mod tests {
 
     #[test]
     fn test_builtin_commands() {
-        let all = HashMap::<Cmd, Alias>::from([
+        let all = HashMap::<String, Alias>::from([
             (
-                Cmd::Dice,
+                "dice".to_string(),
                 Alias::Command {
                     name: "dice".to_string(),
                     cmd: Cmd::Dice,
                 },
             ),
             (
-                Cmd::Exit,
+                "exit".to_string(),
                 Alias::Command {
                     name: "exit".to_string(),
                     cmd: Cmd::Exit,
                 },
             ),
             (
-                Cmd::Open,
+                "open".to_string(),
                 Alias::Command {
                     name: "open".to_string(),
                     cmd: Cmd::Open,
                 },
             ),
             (
-                Cmd::Invalid,
+                "invalid".to_string(),
                 Alias::Command {
                     name: "invalid".to_string(),
                     cmd: Cmd::Invalid,
