@@ -13,11 +13,10 @@ use std::fs;
 use std::path::PathBuf;
 
 use anyhow::Result;
-use nom::character::complete::one_of;
 use nom::{
     branch::alt,
     bytes::complete::{is_not, tag},
-    character::complete::{alpha1, space0, space1},
+    character::complete::{alpha1, one_of, space0, space1},
     combinator::map,
     sequence::{delimited, preceded, separated_pair, terminated},
     IResult,
