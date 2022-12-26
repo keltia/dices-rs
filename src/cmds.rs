@@ -5,7 +5,7 @@ use dices_rs::dice::{
 };
 
 use anyhow::{anyhow, Result};
-use log::{debug, error};
+use log::{debug, error, trace};
 use nom::{
     character::complete::{alpha1, space0},
     combinator::map,
@@ -43,6 +43,7 @@ impl From<&str> for Cmd {
 /// Parse a keyword, return the operation
 ///
 pub fn parse_keyword(input: &str) -> IResult<&str, Cmd> {
+    trace!("parse_keyword");
     let get_op = |s: &str| match s.to_ascii_lowercase().as_str() {
         "doom" => Cmd::Doom,
         "dice" => Cmd::Dice,
@@ -60,6 +61,7 @@ pub fn parse_keyword(input: &str) -> IResult<&str, Cmd> {
 /// Generic roller
 ///
 pub fn roll_from(input: &str) -> Result<Res> {
+    trace!("roll_from");
     let ds = match preceded(space0, parse_with_bonus)(input) {
         Ok((_input, ds)) => {
             debug!("{:?}", ds);
@@ -76,6 +78,7 @@ pub fn roll_from(input: &str) -> Result<Res> {
 /// Generic open dice roller
 ///
 pub fn roll_open(input: &str) -> Result<Res> {
+    trace!("roll_open");
     let d = match preceded(space0, parse_open)(input) {
         Ok((_input, d)) => {
             debug!("{:?}", d);
