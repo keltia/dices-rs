@@ -28,6 +28,7 @@ harness = false
 anyhow = "1.0.66"
 clap = { version = "4.0.29", features = ["derive", "cargo"] }
 home = "0.5.3"
+itertools = "0.10.5"
 log = "0.4.17"
 nom = "7.1.1"
 rand = "0.8.4"

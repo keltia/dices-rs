@@ -336,6 +336,7 @@ dependencies = [
  "clap 4.0.32",
  "criterion",
  "home",
+ "itertools",
  "log",
  "nom",
  "rand",
