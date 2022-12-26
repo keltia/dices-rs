@@ -5,7 +5,6 @@
 //!
 
 use nom::{
-    bytes::complete::tag,
     character::complete::{i8, one_of, space0, u32, u8},
     combinator::map,
     combinator::opt,
