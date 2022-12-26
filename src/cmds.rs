@@ -3,7 +3,9 @@ use dices_rs::dice::{
     result::Res,
     Rollable,
 };
+use std::collections::HashMap;
 
+use crate::aliases::Alias;
 use anyhow::{anyhow, Result};
 use log::{debug, error, trace};
 use nom::{
@@ -13,15 +15,14 @@ use nom::{
     IResult,
 };
 
-/// List of existing commands
+/// List of existing commands without aliases
 ///
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd)]
 pub enum Cmd {
     Dice,
     Doom,
     Exit,
     Invalid,
-    Move,
     Open,
 }
 
@@ -31,13 +32,34 @@ impl From<&str> for Cmd {
     fn from(value: &str) -> Self {
         match value {
             "dice" => Cmd::Dice,
-            "doom" => Cmd::Doom,
             "exit" => Cmd::Exit,
-            "move" => Cmd::Move,
             "open" => Cmd::Open,
             _ => Cmd::Invalid,
         }
     }
+}
+
+/// Primary aka builtin commands
+///
+const CMDS: [&str; 4] = ["dice", "exit", "open", "invalid"];
+
+/// Build a list of "aliases" from the builtin commands
+///
+pub fn builtin_commands() -> HashMap<Cmd, Alias> {
+    debug!("builtin_commands");
+    let all: Vec<(Cmd, Alias)> = CMDS
+        .iter()
+        .map(|&n| {
+            (
+                Cmd::from(n),
+                Alias::Command {
+                    name: n.to_string(),
+                    cmd: Cmd::from(n),
+                },
+            )
+        })
+        .collect();
+    HashMap::<Cmd, Alias>::from_iter(all)
 }
 
 /// Parse a keyword, return the operation
@@ -47,8 +69,6 @@ pub fn parse_keyword(input: &str) -> IResult<&str, Cmd> {
     let get_op = |s: &str| match s.to_ascii_lowercase().as_str() {
         "doom" => Cmd::Doom,
         "dice" => Cmd::Dice,
-        "mouv" => Cmd::Move,
-        "move" => Cmd::Move,
         "open" => Cmd::Open,
         "roll" => Cmd::Dice,
         "exit" => Cmd::Exit,
@@ -90,4 +110,47 @@ pub fn roll_open(input: &str) -> Result<Res> {
         }
     };
     Ok(d.roll())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::cmds::Cmd;
+
+    #[test]
+    fn test_builtin_commands() {
+        let all = HashMap::<Cmd, Alias>::from([
+            (
+                Cmd::Dice,
+                Alias::Command {
+                    name: "dice".to_string(),
+                    cmd: Cmd::Dice,
+                },
+            ),
+            (
+                Cmd::Exit,
+                Alias::Command {
+                    name: "exit".to_string(),
+                    cmd: Cmd::Exit,
+                },
+            ),
+            (
+                Cmd::Open,
+                Alias::Command {
+                    name: "open".to_string(),
+                    cmd: Cmd::Open,
+                },
+            ),
+            (
+                Cmd::Invalid,
+                Alias::Command {
+                    name: "invalid".to_string(),
+                    cmd: Cmd::Invalid,
+                },
+            ),
+        ]);
+
+        let b = builtin_commands();
+        assert_eq!(all, b);
+    }
 }
