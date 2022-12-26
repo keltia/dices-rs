@@ -23,22 +23,13 @@ use nom::{
     IResult,
 };
 
-use crate::cmds::Cmd;
-
-/// This describe all possibilities
-///
-#[derive(Debug, Eq, PartialEq)]
-pub enum Alias {
-    New { name: String, cmd: String },
-    Cmd { name: String, cmd: Cmd },
-    Comment,
-}
+use crate::cmds::{Cmd, Command};
 
 /// Parse a comment introduced by one of #, // and ! followed by a space
 ///
-fn parse_comment(input: &str) -> IResult<&str, Alias> {
+fn parse_comment(input: &str) -> IResult<&str, Command> {
     trace!("parse_comment");
-    let ret_comment = |_s: &str| Alias::Comment;
+    let ret_comment = |_s: &str| Command::Comment;
     let r = terminated(
         alt((tag("#"), tag("//"), tag("!"))),
         preceded(space1, is_not("\r\n")),
@@ -51,7 +42,7 @@ fn parse_comment(input: &str) -> IResult<&str, Alias> {
 /// - command alias nom1 = nom2
 /// - new command new = "3D4"
 ///
-fn parse_alias(input: &str) -> IResult<&str, Alias> {
+fn parse_alias(input: &str) -> IResult<&str, Command> {
     trace!("parse_alias");
     let check = |(first, second): (&str, &str)| {
         trace!("{}", second);
@@ -60,11 +51,11 @@ fn parse_alias(input: &str) -> IResult<&str, Alias> {
         // If the command is invalid, we have a new command, not an alias
         //
         match cmd {
-            Cmd::Invalid => Alias::New {
+            Cmd::Invalid => Command::New {
                 name: first.to_string(),
                 cmd: second.to_string(),
             },
-            _ => Alias::Cmd {
+            _ => Command::Alias {
                 name: first.to_string(),
                 cmd,
             },
@@ -85,17 +76,17 @@ fn parse_string(input: &str) -> IResult<&str, &str> {
     delimited(one_of("\"'"), is_not("\""), one_of("\"'"))(input)
 }
 
-pub fn load_aliases(fname: PathBuf) -> Result<Vec<Alias>> {
+pub fn load_aliases(fname: PathBuf) -> Result<Vec<Command>> {
     debug!("Reading {:?} file...", fname);
     let content = fs::read_to_string(fname)?;
 
-    let list: Vec<Alias> = content
+    let list: Vec<Command> = content
         .lines()
         .filter_map(|line| {
             let (_input, alias) = alt((parse_comment, parse_alias))(line).unwrap();
             // Skip comments
             //
-            if alias != Alias::Comment {
+            if alias != Command::Comment {
                 Some(alias)
             } else {
                 None
@@ -107,16 +98,18 @@ pub fn load_aliases(fname: PathBuf) -> Result<Vec<Alias>> {
 
 /// Define some builtin aliases
 ///
-pub fn builtin_aliases() -> Vec<Alias> {
+pub fn builtin_aliases() -> Vec<Command> {
     trace!("builtin_aliases");
     vec![
         // Dices od Doom
-        Alias::New {
+        //
+        Command::New {
             name: "doom".to_string(),
             cmd: "dice 2D6".to_string(),
         },
         // Roll as Dice
-        Alias::Cmd {
+        //
+        Command::Alias {
             name: "roll".to_string(),
             cmd: Cmd::Dice,
         },
@@ -132,21 +125,21 @@ mod tests {
     fn test_parse_comment_sharp() {
         let c = parse_comment("# this is a comment").unwrap();
         assert_eq!("", c.0);
-        assert_eq!(Alias::Comment, c.1);
+        assert_eq!(Command::Comment, c.1);
     }
 
     #[test]
     fn test_parse_comment_c() {
         let c = parse_comment("// this is a comment").unwrap();
         assert_eq!("", c.0);
-        assert_eq!(Alias::Comment, c.1);
+        assert_eq!(Command::Comment, c.1);
     }
 
     #[test]
     fn test_parse_comment_exclamation() {
         let c = parse_comment("! this is a comment").unwrap();
         assert_eq!("", c.0);
-        assert_eq!(Alias::Comment, c.1);
+        assert_eq!(Command::Comment, c.1);
     }
 
     #[test]
@@ -163,19 +156,19 @@ mod tests {
     fn test_load_aliases() {
         let fname: PathBuf = makepath!("testdata", "aliases");
         let al = vec![
-            Alias::New {
+            Command::New {
                 name: "doom".to_string(),
                 cmd: "dice 2D6".to_string(),
             },
-            Alias::Cmd {
+            Command::Alias {
                 name: "rulez".to_string(),
                 cmd: Cmd::Dice,
             },
-            Alias::Cmd {
+            Command::Alias {
                 name: "roll".to_string(),
                 cmd: Cmd::Dice,
             },
-            Alias::New {
+            Command::New {
                 name: "mouv".to_string(),
                 cmd: "move +7".to_string(),
             },

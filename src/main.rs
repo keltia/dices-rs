@@ -6,7 +6,7 @@ mod version;
 
 use crate::aliases::load_aliases;
 use crate::cli::Opts;
-use crate::cmds::{parse_keyword, roll_from, roll_open, Cmd};
+use crate::cmds::{builtin_commands, roll_from, roll_open, validate_command, Cmd, Command};
 use crate::version::version;
 
 use std::path::PathBuf;
@@ -14,7 +14,10 @@ use std::path::PathBuf;
 use anyhow::Result;
 use clap::Parser;
 use home::home_dir;
+use itertools::Itertools;
 use log::{debug, error, info};
+use nom::character::complete::alphanumeric1;
+use nom::IResult;
 use rustyline::{
     config::BellStyle::Visible, error::ReadlineError, CompletionType::List, Config, Editor,
 };
@@ -37,6 +40,12 @@ macro_rules! makepath {
         .iter()
         .collect()
     };
+}
+
+/// Extract the first word
+///
+fn parse_keyword(input: &str) -> IResult<&str, &str> {
+    alphanumeric1(input)
 }
 
 /// Main entry point
@@ -99,12 +108,36 @@ fn main() -> Result<()> {
 
     // Load aliases if there is one
     //
-    let aliases = match alias.exists() {
+    let mut aliases = match alias.exists() {
         true => load_aliases(alias)?,
         false => vec![],
     };
 
+    // Merge our builtin aliases
+    //
+    let mut builtins = builtin_aliases();
+    debug!("builts = {:?}", builtins);
+    aliases.append(&mut builtins);
+
+    // Remove duplicates
+    //
+    let aliases: Vec<&Command> = aliases.iter().unique().collect();
+
+    // Get all builtin commands
+    //
+    let mut commands = builtin_commands();
+
+    // And merge in aliases
+    //
+    aliases.iter().for_each(|&a| match a {
+        Command::New { name, .. } | Command::Alias { name, .. } => {
+            Some(commands.insert(name.to_owned(), a.to_owned()));
+        }
+        _ => (),
+    });
+
     debug!("aliases = {:?}", aliases);
+    debug!("commands = {:?}", commands);
 
     loop {
         // Get next line
@@ -125,12 +158,14 @@ fn main() -> Result<()> {
         // Get command name
         //
         let line = line.to_ascii_uppercase();
-        let (input, cmd) = match parse_keyword(&line) {
-            Ok((input, cmd)) => (input, cmd),
+        let (input, name) = match parse_keyword(&line) {
+            Ok((input, name)) => (input.to_owned(), name.to_owned()),
             Err(_) => continue,
         };
 
-        debug!("{:?} - {}", cmd, input);
+        debug!("{:?} - {}", name, input);
+
+        let cmd = validate_command(&commands, &name);
 
         // Identify and execute each command
         // Short one may be inserted here directly

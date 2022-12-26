@@ -5,17 +5,25 @@ use dices_rs::dice::{
 };
 use std::collections::HashMap;
 
-use crate::aliases::Alias;
 use anyhow::{anyhow, Result};
 use log::{debug, error, trace};
-use nom::{
-    character::complete::{alpha1, space0},
-    combinator::map,
-    sequence::preceded,
-    IResult,
-};
+use nom::{character::complete::space0, sequence::preceded};
 
-/// List of existing commands without aliases
+/// This describe all possibilities for commands anad aliases
+///
+#[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd)]
+pub enum Command {
+    /// New command:  define a specific command in a string
+    New { name: String, cmd: String },
+    /// Builtin command
+    Builtin { name: String, cmd: Cmd },
+    /// Alias of an existing command
+    Alias { name: String, cmd: Cmd },
+    /// Comment
+    Comment,
+}
+
+/// List of builtin commands
 ///
 #[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd)]
 pub enum Cmd {
@@ -43,39 +51,30 @@ impl From<&str> for Cmd {
 ///
 const CMDS: [&str; 4] = ["dice", "exit", "open", "invalid"];
 
-/// Build a list of "aliases" from the builtin commands
+/// Build a list of `Command` from the builtin commands
 ///
-pub fn builtin_commands() -> HashMap<String, Alias> {
+pub fn builtin_commands() -> HashMap<String, Command> {
     debug!("builtin_commands");
-    let all: Vec<(Cmd, Alias)> = CMDS
+    let all: Vec<(String, Command)> = CMDS
         .iter()
         .map(|&n| {
             (
                 n.to_string(),
-                Alias::Command {
+                Command::Builtin {
                     name: n.to_string(),
                     cmd: Cmd::from(n),
                 },
             )
         })
         .collect();
-    HashMap::<String, Alias>::from_iter(all)
+    HashMap::<String, Command>::from_iter(all)
 }
 
-/// Parse a keyword, return the operation
-///
-pub fn parse_keyword(input: &str) -> IResult<&str, Cmd> {
-    trace!("parse_keyword");
-    let get_op = |s: &str| match s.to_ascii_lowercase().as_str() {
-        "doom" => Cmd::Doom,
-        "dice" => Cmd::Dice,
-        "open" => Cmd::Open,
-        "roll" => Cmd::Dice,
-        "exit" => Cmd::Exit,
-        _ => Cmd::Invalid,
-    };
-    let r = alpha1;
-    map(r, get_op)(input)
+pub fn validate_command(commands: &HashMap<String, Command>, name: &str) -> Result<Command> {
+    match commands.get(name) {
+        Some(cmd) => Ok(cmd.to_owned()),
+        None => Err(anyhow!("unknown command")),
+    }
 }
 
 /// Generic roller
@@ -119,31 +118,31 @@ mod tests {
 
     #[test]
     fn test_builtin_commands() {
-        let all = HashMap::<String, Alias>::from([
+        let all = HashMap::<String, Command>::from([
             (
                 "dice".to_string(),
-                Alias::Command {
+                Command::Builtin {
                     name: "dice".to_string(),
                     cmd: Cmd::Dice,
                 },
             ),
             (
                 "exit".to_string(),
-                Alias::Command {
+                Command::Builtin {
                     name: "exit".to_string(),
                     cmd: Cmd::Exit,
                 },
             ),
             (
                 "open".to_string(),
-                Alias::Command {
+                Command::Builtin {
                     name: "open".to_string(),
                     cmd: Cmd::Open,
                 },
             ),
             (
                 "invalid".to_string(),
-                Alias::Command {
+                Command::Builtin {
                     name: "invalid".to_string(),
                     cmd: Cmd::Invalid,
                 },
