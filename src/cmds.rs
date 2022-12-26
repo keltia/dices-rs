@@ -17,6 +17,7 @@ use nom::{
 ///
 #[derive(Debug, Eq, PartialEq)]
 pub enum Cmd {
+    Dice,
     Doom,
     Exit,
     Invalid,
