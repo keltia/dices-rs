@@ -4,12 +4,15 @@ use dices_rs::dice::{
     Rollable,
 };
 use std::collections::HashMap;
+use std::fmt::Debug;
 
 use anyhow::{anyhow, Result};
 use log::{debug, error, trace};
 use nom::{character::complete::space0, sequence::preceded};
 
-/// This describe all possibilities for commands anad aliases
+use crate::core::Cmd;
+
+/// This describe all possibilities for commands and aliases
 ///
 #[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd)]
 pub enum Command {
@@ -25,67 +28,27 @@ pub enum Command {
     Exit,
 }
 
-/// List of builtin commands
-///
-#[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd)]
-pub enum Cmd {
-    /// Roll of dices
-    Dice,
-    /// End of program
-    Exit,
-    /// Invalid command
-    Invalid,
-    /// Define a new command
-    New,
-    /// Roll an open dice
-    Open,
-}
-
-impl From<&str> for Cmd {
-    /// Return the command associated with the keyword (excluding aliases)
+impl Command {
+    /// Execute the given command
     ///
-    fn from(value: &str) -> Self {
-        match value {
-            "dice" => Cmd::Dice,
-            "exit" => Cmd::Exit,
-            "new" => Cmd::New,
-            "open" => Cmd::Open,
-            _ => Cmd::Invalid,
-        }
-    }
-}
-
-/// Primary aka builtin commands
-///
-const CMDS: [&str; 4] = ["dice", "exit", "open", "invalid"];
-
-/// Build a list of `Command` from the builtin commands
-///
-pub fn builtin_commands() -> HashMap<String, Command> {
-    debug!("builtin_commands");
-    let all: Vec<(String, Command)> = CMDS
-        .iter()
-        .map(|&n| {
-            if n == "exit" {
-                ("exit".to_string(), Command::Exit)
-            } else {
-                (
-                    n.to_string(),
-                    Command::Builtin {
-                        name: n.to_string(),
-                        cmd: Cmd::from(n),
-                    },
-                )
+    pub fn execute(self, input: &str) -> Result<Res> {
+        match self {
+            // Process builtins and aliases
+            //
+            Command::Builtin { cmd, .. } | Command::Alias { cmd, .. } => {
+                trace!("builtin/alias");
+                match cmd {
+                    Cmd::Dice => roll_from(input),
+                    Cmd::Open => roll_open(input),
+                    _ => Err(anyhow!("invalid command")),
+                }
             }
-        })
-        .collect();
-    HashMap::<String, Command>::from_iter(all)
-}
-
-pub fn validate_command(commands: &HashMap<String, Command>, name: &str) -> Result<Command> {
-    match commands.get(name) {
-        Some(cmd) => Ok(cmd.to_owned()),
-        None => Err(anyhow!("unknown command")),
+            // Process new commands:
+            // Here we need to re-enter the parser as if it was typed in
+            //
+            Command::New { .. } => Ok(Res::new()),
+            _ => Err(anyhow!("should not happen")),
+        }
     }
 }
 
@@ -121,47 +84,4 @@ pub fn roll_open(input: &str) -> Result<Res> {
         }
     };
     Ok(d.roll())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::cmds::Cmd;
-
-    #[test]
-    fn test_builtin_commands() {
-        let all = HashMap::<String, Command>::from([
-            (
-                "dice".to_string(),
-                Command::Builtin {
-                    name: "dice".to_string(),
-                    cmd: Cmd::Dice,
-                },
-            ),
-            (
-                "exit".to_string(),
-                Command::Builtin {
-                    name: "exit".to_string(),
-                    cmd: Cmd::Exit,
-                },
-            ),
-            (
-                "open".to_string(),
-                Command::Builtin {
-                    name: "open".to_string(),
-                    cmd: Cmd::Open,
-                },
-            ),
-            (
-                "invalid".to_string(),
-                Command::Builtin {
-                    name: "invalid".to_string(),
-                    cmd: Cmd::Invalid,
-                },
-            ),
-        ]);
-
-        let b = builtin_commands();
-        assert_eq!(all, b);
-    }
 }
