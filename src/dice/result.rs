@@ -36,7 +36,11 @@ impl Default for Res {
 /// Display trait
 impl Display for Res {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "total: {} - incl. bonus: {}", self.sum, self.bonus)
+        write!(
+            f,
+            "total: {} - incl. bonus: {} ({:?})",
+            self.sum, self.bonus, self.flag
+        )
     }
 }
 
