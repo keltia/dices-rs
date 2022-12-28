@@ -41,6 +41,7 @@
 
 use crate::dice::result::Special;
 use internal::internal_roll;
+use log::trace;
 use parse::parse_with_bonus;
 use result::Res;
 
@@ -83,49 +84,65 @@ impl Rollable for Dice {
     /// Implement `roll()` for each type of dices
     ///
     fn roll(&self) -> Res {
-        let mut r = Res::new();
+        let mut res = Res::new();
 
         let r = match *self {
-            Dice::Constant(s) => r.append(s),
+            Dice::Constant(s) => {
+                trace!("dice::constant({s})");
+
+                res.append(s)
+            }
             Dice::Regular(s) => {
+                trace!("dice::regular({s})");
+
                 let rr = match internal_roll(s) {
                     1 => {
-                        r.flag = Special::Fumble;
-                        1
+                        trace!("fumble");
+                        (1, Special::Fumble)
                     }
-                    s => {
-                        r.flag = Special::Natural;
-                        s
+                    r => {
+                        if s == r {
+                            trace!("natural");
+                            (s, Special::Natural)
+                        } else {
+                            (r, Special::None)
+                        }
                     }
                 };
-                r.append(rr)
+                res.append(rr.0).set(rr.1)
             }
             Dice::Open(s) => {
+                trace!("dice::open({s})");
+
                 // While roll is size
                 //
                 loop {
-                    let res = internal_roll(s);
-                    r.append(res);
+                    let rr = internal_roll(s);
+                    res.append(rr);
                     // Check for first roll only
                     //
-                    if res == 1 && r.sum == 1 {
-                        r.flag = Special::Fumble;
+                    if rr == s && res.sum == 1 {
+                        trace!("fumble");
+                        res.set(Special::Fumble);
                         break;
                     }
                     // Not max, stop
                     //
-                    if res != s {
+                    if rr != s {
                         break;
                     }
                 }
-                &mut r
+                &mut res
             }
             Dice::Bonus(s) => {
-                r.sum += s;
-                r.bonus = s;
-                &mut r
+                trace!("dice::bonus({s})");
+
+                res.sum = s;
+                res.bonus = s;
+                &mut res
             }
         };
+        trace!("final r={r:?}");
         r.clone()
     }
 }
@@ -162,6 +179,14 @@ impl DiceSet {
     }
 }
 
+impl From<Dice> for DiceSet {
+    /// Create a single dice "dice set"
+    ///
+    fn from(d: Dice) -> Self {
+        DiceSet(vec![d])
+    }
+}
+
 impl Rollable for DiceSet {
     /// Get all Res and sum them
     ///
@@ -169,8 +194,15 @@ impl Rollable for DiceSet {
         let res = self
             .0
             .iter()
-            .map(|d| d.roll())
-            .fold(Res::new(), |acc, r| acc + r);
+            .map(|d| {
+                let r = d.roll();
+                let f = r.flag();
+                (r.clone(), f)
+            })
+            .fold(Res::new(), |acc, (r, f)| {
+                let mut s = r;
+                acc + s.set(f).clone()
+            });
         res
     }
 }
@@ -217,7 +249,7 @@ mod tests {
 
         assert_eq!(1, r.list.len());
         assert_ne!(0, r.sum);
-        assert!(r.sum <= 6)
+        assert!(r.sum <= 6);
     }
 
     #[test]
