@@ -1,3 +1,6 @@
+//! This is the module which execute the different commands (builtin, alias, new, etc.).
+//!
+
 use dices_rs::dice::{
     parse::{parse_open, parse_with_bonus},
     result::Res,
