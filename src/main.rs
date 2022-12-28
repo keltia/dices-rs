@@ -42,12 +42,6 @@ macro_rules! makepath {
     };
 }
 
-/// Extract the first word
-///
-fn parse_keyword(input: &str) -> IResult<&str, &str> {
-    alphanumeric1(input)
-}
-
 /// Main entry point
 ///
 fn main() -> Result<()> {
