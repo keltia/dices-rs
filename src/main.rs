@@ -2,11 +2,14 @@ mod aliases;
 mod cli;
 mod cmds;
 mod complete;
+mod core;
+mod engine;
 mod version;
 
 use crate::aliases::load_aliases;
 use crate::cli::Opts;
-use crate::cmds::{builtin_commands, roll_from, roll_open, validate_command, Cmd, Command};
+use crate::cmds::Command;
+use crate::engine::Engine;
 use crate::version::version;
 
 use std::path::PathBuf;
@@ -14,10 +17,7 @@ use std::path::PathBuf;
 use anyhow::Result;
 use clap::Parser;
 use home::home_dir;
-use itertools::Itertools;
-use log::{debug, error, info};
-use nom::character::complete::alphanumeric1;
-use nom::IResult;
+use log::{debug, error, info, trace};
 use rustyline::{
     config::BellStyle::Visible, error::ReadlineError, CompletionType::List, Config, Editor,
 };
@@ -90,13 +90,6 @@ fn main() -> Result<()> {
         .build();
     let mut repl = Editor::<()>::with_config(cfg)?;
 
-    // Check whether we supplied an alias file on CLI
-    //
-    let alias = match opts.alias_file {
-        Some(fname) => PathBuf::from(fname),
-        _ => def_alias,
-    };
-
     // Load history if there is one
     //
     if hist.exists() {
@@ -104,37 +97,25 @@ fn main() -> Result<()> {
         repl.load_history(&hist)?;
     }
 
-    // Load aliases if there is one
+    // Check whether we supplied an alias file on CLI, if not just load out default one
     //
-    let mut aliases = match alias.exists() {
-        true => load_aliases(alias)?,
-        false => vec![],
+    let alias = match opts.alias_file {
+        Some(fname) => Some(PathBuf::from(fname)),
+        _ => Some(def_alias),
     };
 
-    // Merge our builtin aliases
+    // Load aliases if there is one.  If no file or nothing new, return the builtin aliases
     //
-    let mut builtins = builtin_aliases();
-    debug!("builts = {:?}", builtins);
-    aliases.append(&mut builtins);
+    let aliases = load_aliases(alias)?;
+    debug!("aliases = {:?}", aliases);
 
-    // Remove duplicates
+    // Create a new engine with all builtin commands
     //
-    let aliases: Vec<&Command> = aliases.iter().unique().collect();
-
-    // Get all builtin commands
-    //
-    let mut commands = builtin_commands();
+    let mut commands = Engine::new();
 
     // And merge in aliases
     //
-    aliases.iter().for_each(|&a| match a {
-        Command::New { name, .. } | Command::Alias { name, .. } => {
-            Some(commands.insert(name.to_owned(), a.to_owned()));
-        }
-        _ => (),
-    });
-
-    debug!("aliases = {:?}", aliases);
+    let commands = commands.merge(aliases);
     debug!("commands = {:?}", commands);
 
     loop {
@@ -149,21 +130,13 @@ fn main() -> Result<()> {
             }
         };
 
+        trace!("{}", line);
+
         // Save it
         //
         repl.add_history_entry(line.as_str());
 
-        // Get command name
-        //
-        let line = line.to_ascii_uppercase();
-        let (input, name) = match parse_keyword(&line) {
-            Ok((input, name)) => (input.to_owned(), name.to_owned()),
-            Err(_) => continue,
-        };
-
-        debug!("{:?} - {}", name, input);
-
-        let cmd = validate_command(&commands, &name)?;
+        let (input, cmd) = commands.parse(&line)?;
 
         debug!("{:?}", cmd);
 
@@ -177,16 +150,7 @@ fn main() -> Result<()> {
         // Short one may be inserted here directly
         // otherwise put them in `cmds.rs`
         //
-        let res = match cmd {
-            // Open-ended dices
-            Cmd::Open => roll_open(input),
-            // Regular roll
-            Cmd::Dice => roll_from(input),
-            _ => {
-                error!("Error: unknown command");
-                continue;
-            }
-        };
+        let res = cmd.execute(&input);
 
         match res {
             Ok(res) => {
