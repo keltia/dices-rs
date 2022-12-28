@@ -76,6 +76,19 @@ impl Res {
         self
     }
 
+    /// Set the flag to something `Special`.
+    ///
+    pub fn set(&mut self, f: Special) -> &mut Self {
+        self.flag = f;
+        self
+    }
+
+    /// Get the special flag
+    ///
+    pub fn flag(&self) -> Special {
+        self.flag
+    }
+
     /// Do we have a "natural" result?
     ///
     pub fn natural(&self) -> bool {
