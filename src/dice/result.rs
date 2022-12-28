@@ -6,7 +6,7 @@
 use std::fmt::{Display, Formatter};
 use std::ops::Add;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Special {
     None,
     Fumble,
