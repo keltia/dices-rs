@@ -44,6 +44,7 @@ impl Display for Res {
 impl Res {
     /// Creates an empty dice set.  Assumes all dices are of the same size
     /// although `list` can contains dices of different sizes (cf. `Bonus`).
+    ///
     pub fn new() -> Res {
         Res {
             list: Vec::new(),
@@ -54,6 +55,7 @@ impl Res {
     }
 
     /// Add one result to a set
+    ///
     pub fn append(&mut self, v: usize) -> &mut Self {
         self.list.push(v);
         self.sum += v as isize;
@@ -61,6 +63,7 @@ impl Res {
     }
 
     /// Merge two sets a & b.  b is empty afterwards.
+    ///
     pub fn merge(&mut self, r: &mut Res) -> &mut Self {
         self.list.append(&mut r.list);
         self.sum += r.sum;
@@ -70,6 +73,7 @@ impl Res {
     }
 
     /// Do we have a "natural" result?
+    ///
     pub fn natural(&self) -> bool {
         self.list.len() == 1 && self.flag == Special::Natural
     }
