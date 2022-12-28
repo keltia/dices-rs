@@ -1,5 +1,21 @@
 //! Module to load aliases from `$HOME/.config/dices/aliases`.
 //!
+//! Public API:
+//!
+//! ```no_run
+//! # use std::path::PathBuf;
+//! use dices_rs::aliases::load_aliases;
+//!
+//! let aliases = load_aliases(PathBuf::from("/some/location/aliases"))?;
+//! ```
+//! and
+//! ```no_run
+//! # use std::path::PathBuf;
+//! use dices_rs::aliases::builtin_aliases;
+//!
+//! let aliases = builtin_aliases()?;
+//! ```
+//!
 //! File format:
 //! ```text
 //! # This is for adding a command
