@@ -39,7 +39,8 @@ use nom::{
     IResult,
 };
 
-use crate::cmds::{Cmd, Command};
+use crate::cmds::Command;
+use crate::core::Cmd;
 
 /// Parse a comment introduced by one of #, // and ! followed by a space
 ///
@@ -183,6 +184,10 @@ mod tests {
             Command::Alias {
                 name: "roll".to_string(),
                 cmd: Cmd::Dice,
+            },
+            Command::New {
+                name: "move".to_string(),
+                cmd: "dice 3D6 -9".to_string(),
             },
             Command::New {
                 name: "mouv".to_string(),
