@@ -78,7 +78,11 @@ fn main() -> Result<()> {
 
     // Prepare logging.
     //
-    stderrlog::new().verbosity(lvl).init().unwrap();
+    stderrlog::new()
+        .modules(["core", "dices_rs", "dice"])
+        .verbosity(lvl)
+        .init()
+        .unwrap();
 
     debug!("Load config...");
 
