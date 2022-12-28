@@ -6,14 +6,14 @@
 //! # use std::path::PathBuf;
 //! use dices_rs::aliases::load_aliases;
 //!
-//! let aliases = load_aliases(PathBuf::from("/some/location/aliases"))?;
+//! let aliases = load_aliases(Some(PathBuf::from("/some/location/aliases")))?;
 //! ```
-//! and
+//! or et get only the default aliases:
 //! ```no_run
 //! # use std::path::PathBuf;
-//! use dices_rs::aliases::builtin_aliases;
+//! use dices_rs::aliases::load_aliases;
 //!
-//! let aliases = builtin_aliases()?;
+//! let aliases = load_aliases(None).unwrap();
 //! ```
 //!
 //! File format:
@@ -29,6 +29,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use anyhow::Result;
+use itertools::Itertools;
 use log::{debug, trace};
 use nom::{
     branch::alt,
@@ -93,29 +94,54 @@ fn parse_string(input: &str) -> IResult<&str, &str> {
     delimited(one_of("\"'"), is_not("\""), one_of("\"'"))(input)
 }
 
-pub fn load_aliases(fname: PathBuf) -> Result<Vec<Command>> {
-    debug!("Reading {:?} file...", fname);
-    let content = fs::read_to_string(fname)?;
+pub fn load_aliases(fname: Option<PathBuf>) -> Result<Vec<Command>> {
+    trace!("load_aliases");
 
-    let list: Vec<Command> = content
-        .lines()
-        .filter_map(|line| {
-            let (_input, alias) = alt((parse_comment, parse_alias))(line).unwrap();
-            // Skip comments
-            //
-            if alias != Command::Comment {
-                Some(alias)
+    // Always load builtins
+    //
+    let mut list = builtin_aliases();
+    debug!("builtins = {:?}", list);
+
+    let mut added = match fname {
+        Some(fname) => {
+            if fname.exists() {
+                trace!("Reading {:?} file...", fname);
+                let content = fs::read_to_string(fname)?;
+
+                // Get all from file
+                //
+                let mut added: Vec<Command> = content
+                    .lines()
+                    .filter_map(|line| {
+                        let (_input, alias) = alt((parse_comment, parse_alias))(line).unwrap();
+                        // Skip comments
+                        //
+                        if alias != Command::Comment {
+                            Some(alias)
+                        } else {
+                            None
+                        }
+                    })
+                    .collect();
+                added
             } else {
-                None
+                vec![]
             }
-        })
-        .collect();
+        }
+        _ => vec![],
+    };
+
+    // Merge our builtin aliases
+    //
+    list.append(&mut added);
+    let list = list.into_iter().unique().collect::<Vec<Command>>();
+
     Ok(list)
 }
 
 /// Define some builtin aliases
 ///
-pub fn builtin_aliases() -> Vec<Command> {
+fn builtin_aliases() -> Vec<Command> {
     trace!("builtin_aliases");
     vec![
         // Dices od Doom
@@ -170,7 +196,7 @@ mod tests {
     }
 
     #[test]
-    fn test_load_aliases() {
+    fn test_load_aliases_with_file() {
         let fname: PathBuf = makepath!("testdata", "aliases");
         let al = vec![
             Command::New {
@@ -178,11 +204,11 @@ mod tests {
                 cmd: "dice 2D6".to_string(),
             },
             Command::Alias {
-                name: "rulez".to_string(),
+                name: "roll".to_string(),
                 cmd: Cmd::Dice,
             },
             Command::Alias {
-                name: "roll".to_string(),
+                name: "rulez".to_string(),
                 cmd: Cmd::Dice,
             },
             Command::New {
@@ -195,7 +221,26 @@ mod tests {
             },
         ];
 
-        let n = load_aliases(fname);
+        let n = load_aliases(Some(fname));
+        assert!(n.is_ok());
+        let n = n.unwrap();
+        assert_eq!(al, n);
+    }
+
+    #[test]
+    fn test_load_aliases_with_none() {
+        let al = vec![
+            Command::New {
+                name: "doom".to_string(),
+                cmd: "dice 2D6".to_string(),
+            },
+            Command::Alias {
+                name: "roll".to_string(),
+                cmd: Cmd::Dice,
+            },
+        ];
+
+        let n = load_aliases(None);
         assert!(n.is_ok());
         let n = n.unwrap();
         assert_eq!(al, n);
