@@ -146,6 +146,13 @@ fn main() -> Result<()> {
             break;
         }
 
+        // Shortcut to list
+        //
+        if cmd == Command::List {
+            println!("{}", commands.list());
+            continue;
+        }
+
         // Identify and execute each command
         // Short one may be inserted here directly
         // otherwise put them in `cmds.rs`
