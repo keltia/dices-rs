@@ -1,6 +1,9 @@
-//! List of builtin commands
+//! List of builtin core commands (i.e. dice and not UI ones related ones.)
 //!
-//! Dice
+//! Dice        Your regular dice
+//! Open        Open-ended dice
+//!
+//! XXX If anyone add core commands, do not forget to document and test.
 
 /// This describe the core commands in the rolling dice engine.
 /// Everything above will be reduced (aka compiled) into executing
