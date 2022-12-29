@@ -36,6 +36,8 @@ pub enum Command {
 impl Command {
     /// Execute the given command
     ///
+    /// TODO: new commands and aliases are not processed
+    ///
     pub fn execute(self, input: &str) -> Result<Res> {
         match self {
             // Process builtins and aliases
@@ -57,7 +59,7 @@ impl Command {
     }
 }
 
-/// Generic roller
+/// Generic regular roller
 ///
 pub fn roll_from(input: &str) -> Result<Res> {
     trace!("roll_from");
