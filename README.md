@@ -12,7 +12,11 @@ develop:  [![develop](https://github.com/keltia/dices-rs/actions/workflows/devel
 Usual small Dice simulator for AD&D type of games.
 
 Previous unreleased version was a straight port of the [Ruby] code in https://bitbucket.org/keltia/addfh-utils
-(Using Mercurial), rewritten before in [Go] [here](https://github.com/keltia/dices-go) and now rewritten to use [Rust].
+(Using [Mercurial]), rewritten before in [Go] [here](https://github.com/keltia/dices-go) and now rewritten to
+use [Rust].
+
+It serves as well as a test-bed on my way of learning [Rust]. It has been rewritten several times (see the commits) as
+I progress further in my learning of the language.
 
 ## Installation
 
@@ -27,9 +31,26 @@ or get the source and build:
     cargo install --path .
 
 The binary will be installed wherever it is defined on your machine and the library in `dice` itself will be compiled
-and available.
+and available. The library itself is very minimal and usable only through the CLI utility.
 
 ## Basic commands
+
+Usage:
+
+```text
+Small CLI utility to roll dices.
+
+Usage: dices [OPTIONS]
+
+Options:
+  -A, --alias-file <ALIAS_FILE>  Alias file
+  -v, --verbose...               Verbose mode
+  -V, --version                  Display utility full version
+  -h, --help                     Print help information
+```
+
+If you specify the `-v` flag several times you increase the amount of debugging information displayed. See below for
+the format of the `aliases` file.
 
 The main commands the `dices` CLI support are:
 
@@ -110,7 +131,11 @@ I use Git Flow for this package so please use something similar or the usual git
 5. Push to the branch (`git push origin my-new-feature`)
 6. Create a new Pull Request
 
+NOTE: Pull Request on the "main" branch will be closed without commit.
+
 [Go]: https://golang.org/
+
+[Mercurial]: https://mercurial-scm.org/
 
 [Ruby]: https://ruby-lang.org/
 
