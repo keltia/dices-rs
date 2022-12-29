@@ -58,6 +58,7 @@ pub trait Rollable {
 }
 
 /// Our different types of `Dice`.
+///
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Dice {
     /// Always yield the same result
@@ -71,6 +72,7 @@ pub enum Dice {
 }
 
 /// Implement the dice methods
+///
 impl Dice {
     /// Return the size of a dice
     ///
@@ -150,10 +152,12 @@ impl Rollable for Dice {
 }
 
 /// The more interesting thing, a set of dices
+///
 #[derive(Clone, Debug, PartialEq)]
 pub struct DiceSet(Vec<Dice>);
 
 /// a Dice set
+///
 impl DiceSet {
     /// Create a DiceSet from a vec of Dice
     /// Used by the nom parser.
