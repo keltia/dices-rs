@@ -1,17 +1,3 @@
-mod aliases;
-mod cli;
-mod cmds;
-mod complete;
-mod core;
-mod engine;
-mod version;
-
-use crate::aliases::load_aliases;
-use crate::cli::Opts;
-use crate::cmds::Command;
-use crate::engine::Engine;
-use crate::version::version;
-
 use std::path::PathBuf;
 
 use anyhow::Result;
@@ -22,6 +8,20 @@ use rustyline::{
     config::BellStyle::Visible, error::ReadlineError, CompletionType::List, Config, Editor,
 };
 use stderrlog::LogLevelNum::{Debug, Info, Trace};
+
+use crate::aliases::load_aliases;
+use crate::cli::Opts;
+use crate::cmds::Command;
+use crate::engine::Engine;
+use crate::version::version;
+
+mod aliases;
+mod cli;
+mod cmds;
+mod complete;
+mod core;
+mod engine;
+mod version;
 
 const BASE_DIR: &str = ".config";
 const ALIASES_FILE: &str = "aliases";
