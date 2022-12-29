@@ -5,7 +5,6 @@
 //!
 
 use nom::{
-    bytes::complete::tag,
     character::complete::{i8, one_of, space0, u32, u8},
     combinator::map,
     combinator::opt,
@@ -18,14 +17,14 @@ use crate::dice::{Dice, DiceSet};
 #[inline]
 pub fn parse_dice(input: &str) -> IResult<&str, Dice> {
     let into_dice = |s: u32| Dice::Regular(s as usize);
-    let r = preceded(tag("D"), u32);
+    let r = preceded(one_of("dD"), u32);
     map(r, into_dice)(input)
 }
 
 #[inline]
 pub fn parse_open(input: &str) -> IResult<&str, Dice> {
     let into_dice = |s: u32| Dice::Open(s as usize);
-    let r = preceded(tag("D"), u32);
+    let r = preceded(one_of("dD"), u32);
     map(r, into_dice)(input)
 }
 
@@ -72,6 +71,7 @@ mod tests {
     #[rstest]
     #[case("D1", DiceSet::from_vec(vec![Dice::Regular(1)]))]
     #[case("D6", DiceSet::from_vec(vec![Dice::Regular(6)]))]
+    #[case("d8", DiceSet::from_vec(vec![Dice::Regular(8)]))]
     #[case("3D6", DiceSet::from_vec(vec![Dice::Regular(6), Dice::Regular(6), Dice::Regular(6)]))]
     fn test_parse_dice(#[case] input: &str, #[case] res: DiceSet) {
         let r = parse_ndices(input);
@@ -83,6 +83,7 @@ mod tests {
     #[rstest]
     #[case("D1", DiceSet::from_vec(vec![Dice::Regular(1)]))]
     #[case("D6 +2", DiceSet::from_vec(vec![Dice::Regular(6), Dice::Bonus(2)]))]
+    #[case("d4 +1", DiceSet::from_vec(vec![Dice::Regular(4), Dice::Bonus(1)]))]
     #[case("D6 =2", DiceSet::from_vec(vec![Dice::Regular(6)]))]
     #[case("3D6", DiceSet::from_vec(vec![Dice::Regular(6), Dice::Regular(6), Dice::Regular(6)]))]
     #[case("3D6 -2", DiceSet::from_vec(vec![Dice::Regular(6), Dice::Regular(6), Dice::Regular(6), Dice::Bonus(-2)]))]

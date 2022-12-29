@@ -6,7 +6,7 @@
 use std::fmt::{Display, Formatter};
 use std::ops::Add;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Special {
     None,
     Fumble,
@@ -19,7 +19,7 @@ pub struct Res {
     /// Store all the rolled dices
     pub list: Vec<usize>,
     /// Sum of all dices
-    pub sum: usize,
+    pub sum: isize,
     /// If there is a malus/bonus to apply
     pub bonus: isize,
     /// Special result?
@@ -36,7 +36,11 @@ impl Default for Res {
 /// Display trait
 impl Display for Res {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "total: {} - incl. bonus: {}", self.sum, self.bonus)
+        write!(
+            f,
+            "total: {} - incl. bonus: {} ({:?})",
+            self.sum, self.bonus, self.flag
+        )
     }
 }
 
@@ -44,6 +48,7 @@ impl Display for Res {
 impl Res {
     /// Creates an empty dice set.  Assumes all dices are of the same size
     /// although `list` can contains dices of different sizes (cf. `Bonus`).
+    ///
     pub fn new() -> Res {
         Res {
             list: Vec::new(),
@@ -54,13 +59,15 @@ impl Res {
     }
 
     /// Add one result to a set
+    ///
     pub fn append(&mut self, v: usize) -> &mut Self {
         self.list.push(v);
-        self.sum += v;
+        self.sum += v as isize;
         self
     }
 
     /// Merge two sets a & b.  b is empty afterwards.
+    ///
     pub fn merge(&mut self, r: &mut Res) -> &mut Self {
         self.list.append(&mut r.list);
         self.sum += r.sum;
@@ -69,7 +76,21 @@ impl Res {
         self
     }
 
+    /// Set the flag to something `Special`.
+    ///
+    pub fn set(&mut self, f: Special) -> &mut Self {
+        self.flag = f;
+        self
+    }
+
+    /// Get the special flag
+    ///
+    pub fn flag(&self) -> Special {
+        self.flag
+    }
+
     /// Do we have a "natural" result?
+    ///
     pub fn natural(&self) -> bool {
         self.list.len() == 1 && self.flag == Special::Natural
     }

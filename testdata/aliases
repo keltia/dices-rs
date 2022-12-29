@@ -1,0 +1,10 @@
+# define a new command
+doom = "dice 2D6"
+! this is an alias
+rulez = dice
+// and another one
+roll = dice
+# Movement roll
+move = "dice 3D6 -9"
+# new command with argument
+mouv = "move +7"

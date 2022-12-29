@@ -39,10 +39,13 @@
 //! println!("{:#?}", ds.roll());
 //! ```
 
-use crate::dice::result::Special;
+use log::trace;
+
 use internal::internal_roll;
 use parse::parse_with_bonus;
 use result::Res;
+
+use crate::dice::result::Special;
 
 pub mod internal;
 pub mod parse;
@@ -55,6 +58,7 @@ pub trait Rollable {
 }
 
 /// Our different types of `Dice`.
+///
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Dice {
     /// Always yield the same result
@@ -68,6 +72,7 @@ pub enum Dice {
 }
 
 /// Implement the dice methods
+///
 impl Dice {
     /// Return the size of a dice
     ///
@@ -83,50 +88,76 @@ impl Rollable for Dice {
     /// Implement `roll()` for each type of dices
     ///
     fn roll(&self) -> Res {
-        let mut r = Res::new();
+        let mut res = Res::new();
 
         let r = match *self {
-            Dice::Constant(s) => r.append(s),
+            Dice::Constant(s) => {
+                trace!("dice::constant({s})");
+
+                res.append(s)
+            }
             Dice::Regular(s) => {
+                trace!("dice::regular({s})");
+
                 let rr = match internal_roll(s) {
                     1 => {
-                        r.flag = Special::Fumble;
-                        1
+                        trace!("fumble");
+                        (1, Special::Fumble)
                     }
-                    s => {
-                        r.flag = Special::Natural;
-                        s
+                    r => {
+                        if s == r {
+                            trace!("natural");
+                            (s, Special::Natural)
+                        } else {
+                            (r, Special::None)
+                        }
                     }
                 };
-                r.append(rr)
+                res.append(rr.0).set(rr.1)
             }
             Dice::Open(s) => {
+                trace!("dice::open({s})");
+
                 // While roll is size
                 //
                 loop {
-                    let res = internal_roll(s);
-                    r.append(res);
-                    if res != s {
+                    let rr = internal_roll(s);
+                    res.append(rr);
+                    // Check for first roll only
+                    //
+                    if rr == s && res.sum == 1 {
+                        trace!("fumble");
+                        res.set(Special::Fumble);
+                        break;
+                    }
+                    // Not max, stop
+                    //
+                    if rr != s {
                         break;
                     }
                 }
-                &mut r
+                &mut res
             }
             Dice::Bonus(s) => {
-                r.sum += s as usize;
-                r.bonus = s;
-                &mut r
+                trace!("dice::bonus({s})");
+
+                res.sum = s;
+                res.bonus = s;
+                &mut res
             }
         };
+        trace!("final r={r:?}");
         r.clone()
     }
 }
 
 /// The more interesting thing, a set of dices
+///
 #[derive(Clone, Debug, PartialEq)]
 pub struct DiceSet(Vec<Dice>);
 
 /// a Dice set
+///
 impl DiceSet {
     /// Create a DiceSet from a vec of Dice
     /// Used by the nom parser.
@@ -154,6 +185,14 @@ impl DiceSet {
     }
 }
 
+impl From<Dice> for DiceSet {
+    /// Create a single dice "dice set"
+    ///
+    fn from(d: Dice) -> Self {
+        DiceSet(vec![d])
+    }
+}
+
 impl Rollable for DiceSet {
     /// Get all Res and sum them
     ///
@@ -161,16 +200,24 @@ impl Rollable for DiceSet {
         let res = self
             .0
             .iter()
-            .map(|d| d.roll())
-            .fold(Res::new(), |acc, r| acc + r);
-        res.clone()
+            .map(|d| {
+                let r = d.roll();
+                let f = r.flag();
+                (r, f)
+            })
+            .fold(Res::new(), |acc, (r, f)| {
+                let mut s = r;
+                acc + s.set(f).clone()
+            });
+        res
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use rstest::rstest;
+
+    use super::*;
 
     #[test]
     fn test_constant_new() {
@@ -209,7 +256,7 @@ mod tests {
 
         assert_eq!(1, r.list.len());
         assert_ne!(0, r.sum);
-        assert!(r.sum <= 6)
+        assert!(r.sum <= 6);
     }
 
     #[test]
@@ -234,7 +281,7 @@ mod tests {
             _ => {
                 let l = r.list.len();
                 assert!(l > 1);
-                assert!(r.sum < l * d.size());
+                assert!(r.sum < (l * d.size()) as isize);
             }
         }
     }
