@@ -159,7 +159,7 @@ fn main() -> Result<()> {
             }
             // The hard part is that we need to reenter the parser
             //
-            Command::New { name, cmd } => {
+            Command::New { cmd, .. } => {
                 trace!("new={}", cmd);
                 let (input, cmd) = commands.parse(&cmd)?;
                 let res = cmd.execute(&input);
