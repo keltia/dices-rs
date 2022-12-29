@@ -1,3 +1,8 @@
+//! Engine module
+//!
+//! This is where all the CLI parsing is done and stuff is executed.
+//!
+
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 
