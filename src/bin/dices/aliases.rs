@@ -161,8 +161,9 @@ fn builtin_aliases() -> Vec<Command> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::makepath;
+
+    use super::*;
 
     #[test]
     fn test_parse_comment_sharp() {
