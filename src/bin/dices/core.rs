@@ -27,3 +27,20 @@ impl From<&str> for Cmd {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use rstest::rstest;
+
+    use super::*;
+
+    #[rstest]
+    #[case("dice", Cmd::Dice)]
+    #[case("open", Cmd::Open)]
+    #[case("doce", Cmd::Invalid)]
+    #[case("doom", Cmd::Invalid)]
+    #[case("whatever", Cmd::Invalid)]
+    fn test_cmd_from(#[case] input: &str, #[case] cmd: Cmd) {
+        assert_eq!(cmd, Cmd::from(input))
+    }
+}
