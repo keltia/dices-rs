@@ -135,7 +135,13 @@ fn main() -> Result<()> {
         //
         repl.add_history_entry(line.as_str());
 
-        let (input, cmd) = commands.parse(&line)?;
+        let (input, cmd) = match commands.parse(&line) {
+            Ok((input, cmd)) => (input.to_string(), cmd),
+            Err(_) => {
+                println!("unknown command");
+                continue
+            }
+        };
 
         debug!("{:?}", cmd);
 
