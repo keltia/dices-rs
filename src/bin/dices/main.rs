@@ -66,7 +66,6 @@ fn main() -> Result<()> {
     let lvl = match opts.verbose {
         0 => Info,
         1 => Debug,
-        2 => Trace,
         _ => Trace,
     };
 
