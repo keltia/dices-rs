@@ -65,12 +65,14 @@ impl Engine {
         self
     }
 
+    /// Merge a list of commands into the main engine.
+    ///
     pub fn merge(&mut self, aliases: Vec<Command>) -> &mut Self {
         // And merge in aliases
         //
         aliases.iter().for_each(|a| match a {
             Command::New { ref name, .. } | Command::Alias { ref name, .. } => {
-                self.0.insert(name.to_owned(), a.to_owned());
+                self.insert(name.to_owned(), a.to_owned());
             }
             _ => (),
         });
