@@ -1,17 +1,17 @@
 //! This is the module which execute the different commands (builtin, alias, new, etc.).
 //!
 
-use dices_rs::dice::{
-    parse::{parse_open, parse_with_bonus},
-    result::Res,
-    Rollable,
-};
-use std::collections::HashMap;
 use std::fmt::Debug;
 
 use anyhow::{anyhow, Result};
 use log::{debug, error, trace};
 use nom::{character::complete::space0, sequence::preceded};
+
+use dices_rs::dice::{
+    parse::{parse_open, parse_with_bonus},
+    result::Res,
+    Rollable,
+};
 
 use crate::core::Cmd;
 
@@ -29,6 +29,8 @@ pub enum Command {
     Comment,
     /// End of the game
     Exit,
+    /// List all commands
+    List,
 }
 
 impl Command {
