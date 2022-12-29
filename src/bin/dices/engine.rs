@@ -95,7 +95,7 @@ impl Debug for Engine {
 
 /// Primary aka builtin commands
 ///
-const CMDS: [&str; 4] = ["dice", "exit", "open", "invalid"];
+const CMDS: [&str; 5] = ["dice", "exit", "list", "open", "invalid"];
 
 /// Build a list of `Command` from the builtin commands
 ///
@@ -103,18 +103,20 @@ fn builtin_commands() -> Engine {
     debug!("builtin_commands");
     let all: Vec<(String, Command)> = CMDS
         .iter()
-        .map(|&n| {
-            if n == "exit" {
-                (n.to_string(), Command::Exit)
-            } else {
-                (
-                    n.to_string(),
-                    Command::Builtin {
-                        name: n.to_string(),
-                        cmd: Cmd::from(n),
-                    },
-                )
-            }
+        .map(|&n| match n {
+            // These are caught before
+            //
+            "exit" => (n.to_string(), Command::Exit),
+            "list" => (n.to_string(), Command::List),
+            // General case
+            //
+            _ => (
+                n.to_string(),
+                Command::Builtin {
+                    name: n.to_string(),
+                    cmd: Cmd::from(n),
+                },
+            ),
         })
         .collect();
     Engine(HashMap::<String, Command>::from_iter(all))
@@ -135,6 +137,7 @@ mod tests {
                 },
             ),
             ("exit".to_string(), Command::Exit),
+            ("list".to_string(), Command::List),
             (
                 "open".to_string(),
                 Command::Builtin {
@@ -166,6 +169,7 @@ mod tests {
                 },
             ),
             ("exit".to_string(), Command::Exit),
+            ("list".to_string(), Command::List),
             (
                 "open".to_string(),
                 Command::Builtin {
@@ -204,6 +208,7 @@ mod tests {
                 },
             ),
             ("exit".to_string(), Command::Exit),
+            ("list".to_string(), Command::List),
             (
                 "open".to_string(),
                 Command::Builtin {
