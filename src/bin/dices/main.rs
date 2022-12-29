@@ -145,25 +145,38 @@ fn main() -> Result<()> {
 
         debug!("{:?}", cmd);
 
-        // Shortcut to exit
-        //
-        if cmd == Command::Exit {
-            break;
-        }
+        let res = match cmd {
 
-        // Shortcut to list
-        //
-        if cmd == Command::List {
-            println!("{}", commands.list());
-            continue;
-        }
+            // Shortcut to exit
+            //
+            Command::Exit => break,
 
-        // Identify and execute each command
-        // Short one may be inserted here directly
-        // otherwise put them in `cmds.rs`
-        //
-        let res = cmd.execute(&input);
-
+            // Shortcut to list
+            //
+            Command::List => {
+                println!("{}", commands.list());
+                continue;
+            }
+            // The hard part is that we need to reenter the parser
+            //
+            Command::New { name, cmd } => {
+                trace!("new={}", cmd);
+                let (input, cmd) = commands.parse(&cmd)?;
+                let res = cmd.execute(&input);
+                dbg!(&res);
+                res
+            }
+            _ => {
+                // Identify and execute each command
+                // Short one may be inserted here directly
+                // otherwise put them in `cmds.rs`
+                //
+                trace!("cmd={:?}", cmd);
+                let res = cmd.execute(&input);
+                dbg!(&res);
+                res
+            }
+        };
         match res {
             Ok(res) => {
                 info!("roll = {:?}", res);
