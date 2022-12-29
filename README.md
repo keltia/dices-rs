@@ -4,10 +4,8 @@
 
 ## Build Status
 
-Branch:
-main  [![main](https://github.com/keltia/dices-rs/actions/workflows/rust.yml/badge.svg)](https://github.com/keltia/dices-rs/actions/workflows/rust.yml)
-Branch:
-develop  [![develop](https://github.com/keltia/dices-rs/actions/workflows/develop.yml/badge.svg)](https://github.com/keltia/dices-rs/actions/workflows/develop.yml)
+main:  [![main](https://github.com/keltia/dices-rs/actions/workflows/rust.yml/badge.svg)](https://github.com/keltia/dices-rs/actions/workflows/rust.yml)
+develop:  [![develop](https://github.com/keltia/dices-rs/actions/workflows/develop.yml/badge.svg)](https://github.com/keltia/dices-rs/actions/workflows/develop.yml)
 
 ## Description
 
