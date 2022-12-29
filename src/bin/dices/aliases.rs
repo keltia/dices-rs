@@ -110,7 +110,7 @@ pub fn load_aliases(fname: Option<PathBuf>) -> Result<Vec<Command>> {
 
                 // Get all from file
                 //
-                let mut added: Vec<Command> = content
+                let added: Vec<Command> = content
                     .lines()
                     .filter_map(|line| {
                         let (_input, alias) = alt((parse_comment, parse_alias))(line).unwrap();
