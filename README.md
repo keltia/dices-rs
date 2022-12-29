@@ -90,6 +90,25 @@ Some aliases are pre-defined at start to be useful:
 - `roll` for `dice`
 - `doom` for the special roll of `2D6`
 
+## TODO
+
+- Document, document and more documentation
+- Tests and more tests
+- Allow alias to existing commands or other aliases
+
+## Contributing
+
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for some simple rules.
+
+I use Git Flow for this package so please use something similar or the usual github workflow.
+
+1. Fork it ( https://github.com/keltia/dmarc-rs/fork )
+2. Checkout the develop branch (`git checkout develop`)
+3. Create your feature branch (`git checkout -b my-new-feature`)
+4. Commit your changes (`git commit -am 'Add some feature'`)
+5. Push to the branch (`git push origin my-new-feature`)
+6. Create a new Pull Request
+
 [Go]: https://golang.org/
 
 [Ruby]: https://ruby-lang.org/
