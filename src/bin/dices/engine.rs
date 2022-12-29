@@ -239,10 +239,12 @@ mod tests {
         assert_eq!(all, e.0);
     }
 
+    /// TODO Finish the test
+    ///
     #[test]
     fn test_commands_list() {
         let list = builtin_commands();
-        let str = r##""##;
+        let _str = r##""##;
         dbg!(list.list());
     }
 }
