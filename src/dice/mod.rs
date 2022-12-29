@@ -39,11 +39,13 @@
 //! println!("{:#?}", ds.roll());
 //! ```
 
-use crate::dice::result::Special;
-use internal::internal_roll;
 use log::trace;
+
+use internal::internal_roll;
 use parse::parse_with_bonus;
 use result::Res;
+
+use crate::dice::result::Special;
 
 pub mod internal;
 pub mod parse;
@@ -197,7 +199,7 @@ impl Rollable for DiceSet {
             .map(|d| {
                 let r = d.roll();
                 let f = r.flag();
-                (r.clone(), f)
+                (r, f)
             })
             .fold(Res::new(), |acc, (r, f)| {
                 let mut s = r;
@@ -209,8 +211,9 @@ impl Rollable for DiceSet {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use rstest::rstest;
+
+    use super::*;
 
     #[test]
     fn test_constant_new() {
