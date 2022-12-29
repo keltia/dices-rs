@@ -1,3 +1,6 @@
+//! Benchmark the two parsers, the current one based on `nom` and the old, manual one.
+//!
+
 use criterion::{criterion_group, criterion_main, Criterion};
 use log::debug;
 
