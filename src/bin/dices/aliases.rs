@@ -144,7 +144,7 @@ pub fn load_aliases(fname: Option<PathBuf>) -> Result<Vec<Command>> {
 fn builtin_aliases() -> Vec<Command> {
     trace!("builtin_aliases");
     vec![
-        // Dices od Doom
+        // Dices of Doom(tm)
         //
         Command::New {
             name: "doom".to_string(),
