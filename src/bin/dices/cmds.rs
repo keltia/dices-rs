@@ -34,7 +34,7 @@ pub enum Command {
 }
 
 impl Command {
-    /// Execute the given command
+    /// Execute the given builtin command
     ///
     /// TODO: new commands and aliases are not processed
     ///
@@ -50,10 +50,6 @@ impl Command {
                     _ => Err(anyhow!("invalid command")),
                 }
             }
-            // Process new commands:
-            // Here we need to re-enter the parser as if it was typed in
-            //
-            Command::New { .. } => Ok(Res::new()),
             _ => Err(anyhow!("should not happen")),
         }
     }
