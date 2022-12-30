@@ -97,7 +97,7 @@ impl Debug for Engine {
 
 /// Primary aka builtin commands
 ///
-const CMDS: [&str; 5] = ["dice", "exit", "list", "open", "invalid"];
+const CMDS: [&str; 4] = ["dice", "exit", "list", "open"];
 
 /// Build a list of `Command` from the builtin commands
 ///
@@ -147,13 +147,6 @@ mod tests {
                     cmd: Cmd::Open,
                 },
             ),
-            (
-                "invalid".to_string(),
-                Command::Builtin {
-                    name: "invalid".to_string(),
-                    cmd: Cmd::Invalid,
-                },
-            ),
         ]);
 
         let b = builtin_commands();
@@ -177,13 +170,6 @@ mod tests {
                 Command::Builtin {
                     name: "open".to_string(),
                     cmd: Cmd::Open,
-                },
-            ),
-            (
-                "invalid".to_string(),
-                Command::Builtin {
-                    name: "invalid".to_string(),
-                    cmd: Cmd::Invalid,
                 },
             ),
         ]);
@@ -216,13 +202,6 @@ mod tests {
                 Command::Builtin {
                     name: "open".to_string(),
                     cmd: Cmd::Open,
-                },
-            ),
-            (
-                "invalid".to_string(),
-                Command::Builtin {
-                    name: "invalid".to_string(),
-                    cmd: Cmd::Invalid,
                 },
             ),
             (
