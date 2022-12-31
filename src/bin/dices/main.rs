@@ -157,7 +157,8 @@ fn main() -> Result<()> {
             //
             Command::New { cmd, .. } => {
                 trace!("new={}", cmd);
-                let (input, cmd) = commands.parse(&cmd)?;
+
+                let (input, cmd) = commands.recurse(&cmd)?;
                 let res = cmd.execute(&input);
                 res
             }
