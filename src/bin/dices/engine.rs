@@ -9,11 +9,10 @@ use std::fmt::{Debug, Formatter};
 use anyhow::{anyhow, Result};
 use itertools::Itertools;
 use log::{debug, trace};
-use nom::character::complete::alphanumeric1;
-use nom::IResult;
+use nom::{character::complete::alphanumeric1, IResult};
 
-use crate::cmds::Command;
-use crate::core::Cmd;
+use crate::commands::core::Cmd;
+use crate::commands::Command;
 
 /// Easier to carry around
 ///

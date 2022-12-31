@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use clap::Parser;
 use home::home_dir;
 use log::{debug, error, info, trace};
@@ -9,17 +9,14 @@ use rustyline::{
 };
 use stderrlog::LogLevelNum::{Debug, Info, Trace};
 
-use crate::aliases::load_aliases;
 use crate::cli::Opts;
-use crate::cmds::Command;
+use crate::commands::aliases::load_aliases;
+use crate::commands::Command;
 use crate::engine::Engine;
 use crate::version::version;
 
-mod aliases;
 mod cli;
-mod cmds;
-mod complete;
-mod core;
+mod commands;
 mod engine;
 mod version;
 
@@ -72,7 +69,7 @@ fn main() -> Result<()> {
     // Prepare logging.
     //
     stderrlog::new()
-        .modules(["core", "dices_rs", "dice"])
+        .modules(["dices", "dices_rs"])
         .verbosity(lvl)
         .init()
         .unwrap();
@@ -139,14 +136,13 @@ fn main() -> Result<()> {
             Ok((input, cmd)) => (input.to_string(), cmd),
             Err(_) => {
                 println!("unknown command");
-                continue
+                continue;
             }
         };
 
         debug!("{:?}", cmd);
 
         let res = match cmd {
-
             // Shortcut to exit
             //
             Command::Exit => break,
@@ -163,19 +159,21 @@ fn main() -> Result<()> {
                 trace!("new={}", cmd);
                 let (input, cmd) = commands.parse(&cmd)?;
                 let res = cmd.execute(&input);
-                dbg!(&res);
                 res
             }
-            _ => {
+            // These can be executed directly
+            //
+            Command::Builtin { .. } | Command::Alias { .. } => {
                 // Identify and execute each command
                 // Short one may be inserted here directly
-                // otherwise put them in `cmds.rs`
+                // otherwise put them in `commands/mod.rs`
                 //
                 trace!("cmd={:?}", cmd);
                 let res = cmd.execute(&input);
                 dbg!(&res);
                 res
             }
+            _ => Err(anyhow!("impossible command")),
         };
         match res {
             Ok(res) => {
