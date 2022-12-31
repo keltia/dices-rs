@@ -43,12 +43,12 @@ impl From<&str> for Cmd {
 
 impl Cmd {
     pub fn execute(self, input: &str) -> Result<Res> {
+        trace!("cmd::execute");
         let r = match self {
             Cmd::Dice => preceded(space0, parse_with_bonus)(input),
             Cmd::Open => preceded(space0, parse_open)(input),
             _ => return Err(anyhow!("invalid Cmd")),
         };
-        trace!("roll_from");
         let ds = match r {
             Ok((_input, ds)) => {
                 debug!("{:?}", ds);
