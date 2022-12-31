@@ -142,6 +142,8 @@ fn main() -> Result<()> {
 
         debug!("{:?}", cmd);
 
+        // Some actions have to be executed here because they do not involve the "core" dice-related
+        // commands and interact with the interactive shell like `exit` and `list`
         let res = match cmd {
             // Shortcut to exit
             //
