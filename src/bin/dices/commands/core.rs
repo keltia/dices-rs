@@ -5,6 +5,16 @@
 //!
 //! XXX If anyone add core commands, do not forget to document and test.
 
+use anyhow::{anyhow, Result};
+use log::{debug, error, trace};
+use nom::{character::complete::space0, sequence::preceded};
+
+use dices_rs::dice::{
+    parse::{parse_open, parse_with_bonus},
+    result::Res,
+    Rollable,
+};
+
 /// This describe the core commands in the rolling dice engine.
 /// Everything above will be reduced (aka compiled) into executing
 /// one of these.
@@ -31,6 +41,28 @@ impl From<&str> for Cmd {
     }
 }
 
+impl Cmd {
+    pub fn execute(self, input: &str) -> Result<Res> {
+        let r = match self {
+            Cmd::Dice => preceded(space0, parse_with_bonus)(input),
+            Cmd::Open => preceded(space0, parse_open)(input),
+            _ => return Err(anyhow!("invalid Cmd")),
+        };
+        trace!("roll_from");
+        let ds = match r {
+            Ok((_input, ds)) => {
+                debug!("{:?}", ds);
+                ds
+            }
+            Err(e) => {
+                error!("{:?}", e.to_string());
+                return Err(anyhow!("error parsing input"));
+            }
+        };
+        Ok(ds.roll())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
@@ -45,5 +77,17 @@ mod tests {
     #[case("whatever", Cmd::Invalid)]
     fn test_cmd_from(#[case] input: &str, #[case] cmd: Cmd) {
         assert_eq!(cmd, Cmd::from(input))
+    }
+
+    #[rstest]
+    #[case("dice", "D6", Cmd::Dice)]
+    #[case("dice", "2d4", Cmd::Dice)]
+    #[case("open", "d4", Cmd::Open)]
+    #[case("open", "D4", Cmd::Open)]
+    fn test_cmd_execute(#[case] cmd: &str, #[case] arg: &str, #[case] ds: Cmd) {
+        let d = Cmd::from(cmd);
+        assert_eq!(ds, d);
+        let res = d.execute(arg);
+        assert!(res.is_ok());
     }
 }

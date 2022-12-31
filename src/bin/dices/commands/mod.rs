@@ -1,22 +1,23 @@
 //! This is the module which execute the different commands (builtin, alias, new, etc.).
 //!
 
-pub mod aliases;
-pub mod complete;
-pub mod core;
-
 use std::fmt::Debug;
 
 use anyhow::{anyhow, Result};
 use log::{debug, error, trace};
 use nom::{character::complete::space0, sequence::preceded};
 
-use crate::commands::core::Cmd;
 use dices_rs::dice::{
     parse::{parse_open, parse_with_bonus},
     result::Res,
     Rollable,
 };
+
+use crate::commands::core::Cmd;
+
+pub mod aliases;
+pub mod complete;
+pub mod core;
 
 /// This describe all possibilities for commands and aliases
 ///
@@ -47,47 +48,14 @@ impl Command {
             //
             Command::Builtin { cmd, .. } | Command::Alias { cmd, .. } => {
                 trace!("builtin/alias");
-                match cmd {
-                    Cmd::Dice => roll_from(input),
-                    Cmd::Open => roll_open(input),
-                    _ => Err(anyhow!("invalid command")),
-                }
+                cmd.execute(input)
+                // match cmd {
+                //     Cmd::Dice => roll_from(input),
+                //     Cmd::Open => roll_open(input),
+                //     _ => Err(anyhow!("invalid command")),
+                //}
             }
             _ => Err(anyhow!("should not happen")),
         }
     }
-}
-
-/// Generic regular roller
-///
-pub fn roll_from(input: &str) -> Result<Res> {
-    trace!("roll_from");
-    let ds = match preceded(space0, parse_with_bonus)(input) {
-        Ok((_input, ds)) => {
-            debug!("{:?}", ds);
-            ds
-        }
-        Err(e) => {
-            error!("{:?}", e.to_string());
-            return Err(anyhow!("error parsing input"));
-        }
-    };
-    Ok(ds.roll())
-}
-
-/// Generic open dice roller
-///
-pub fn roll_open(input: &str) -> Result<Res> {
-    trace!("roll_open");
-    let d = match preceded(space0, parse_open)(input) {
-        Ok((_input, d)) => {
-            debug!("{:?}", d);
-            d
-        }
-        Err(e) => {
-            error!("{:?}", e.to_string());
-            return Err(anyhow!("error parsing input"));
-        }
-    };
-    Ok(d.roll())
 }
