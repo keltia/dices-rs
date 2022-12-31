@@ -4,10 +4,11 @@
 //! command is given the right arguments.
 //!
 
+use itertools::Itertools;
 use nom::{
     character::complete::{i8, one_of, space0, u32, u8},
-    combinator::map,
-    combinator::opt,
+    combinator::{map, opt},
+    multi::fold_many0,
     sequence::{pair, preceded},
     IResult,
 };
@@ -50,15 +51,29 @@ fn parse_bonus(input: &str) -> IResult<&str, std::primitive::i8> {
     map(r, get_sign)(input)
 }
 
+#[inline]
+fn parse_nbonus(input: &str) -> IResult<&str, std::primitive::i8> {
+    let sum = |v: Vec<std::primitive::i8>| v.iter().sum1().unwrap_or(0);
+    let r = fold_many0(
+        preceded(space0, parse_bonus),
+        Vec::new,
+        |mut acc: Vec<_>, item| {
+            acc.push(item);
+            acc
+        },
+    );
+    map(r, sum)(input)
+}
+
 pub fn parse_with_bonus(input: &str) -> IResult<&str, DiceSet> {
-    let add_bonus = |(mut ds, b): (DiceSet, Option<std::primitive::i8>)| {
-        if let Some(bonus) = b {
-            ds.0.push(Dice::Bonus(bonus.into()))
+    let add_bonus = |(mut ds, b): (DiceSet, std::primitive::i8)| {
+        if b != 0 {
+            ds.0.push(Dice::Bonus(b.into()))
         };
         ds
     };
 
-    let r = pair(parse_ndices, opt(preceded(space0, parse_bonus)));
+    let r = pair(parse_ndices, parse_nbonus);
     map(r, add_bonus)(input)
 }
 
@@ -84,7 +99,8 @@ mod tests {
 
     #[rstest]
     #[case("D1", DiceSet::from_vec(vec![Dice::Regular(1)]))]
-    #[case("D6 +2", DiceSet::from_vec(vec![Dice::Regular(6), Dice::Bonus(2)]))]
+    #[case("D6 +2", DiceSet::from_vec(vec ! [Dice::Regular(6), Dice::Bonus(2)]))]
+    #[case("D6 +2 +1", DiceSet::from_vec(vec ! [Dice::Regular(6), Dice::Bonus(3)]))]
     #[case("d4 +1", DiceSet::from_vec(vec ! [Dice::Regular(4), Dice::Bonus(1)]))]
     #[case("D6 =2", DiceSet::from_vec(vec ! [Dice::Regular(6)]))]
     #[case("3D6", DiceSet::from_vec(vec ! [Dice::Regular(6), Dice::Regular(6), Dice::Regular(6)]))]
@@ -104,5 +120,17 @@ mod tests {
         assert!(r.is_ok());
         let r = r.unwrap();
         assert_eq!(res, r.1);
+    }
+
+    #[rstest]
+    #[case("", 0)]
+    #[case("+1", 1)]
+    #[case("-2", - 2)]
+    #[case("+1 +2 +3 -2 +7", 11)]
+    #[case("+2 +3 +7", 12)]
+    #[case(" -1 +2 -2 +7", 6)]
+    fn test_parse_nbonus(#[case] input: &str, #[case] sum: i8) {
+        let (_input, s) = parse_nbonus(input).unwrap();
+        assert_eq!(sum, s);
     }
 }
