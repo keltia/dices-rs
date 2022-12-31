@@ -6,14 +6,13 @@
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, bail, Result};
 use itertools::Itertools;
 use log::{debug, trace};
-use nom::character::complete::alphanumeric1;
-use nom::IResult;
+use nom::{character::complete::alphanumeric1, IResult};
 
-use crate::cmds::Command;
-use crate::core::Cmd;
+use crate::commands::core::Cmd;
+use crate::commands::Command;
 
 /// Easier to carry around
 ///
@@ -58,6 +57,30 @@ impl Engine {
         }
     }
 
+    /// Try to reduce/compile Command::New into a Builtin or Alias
+    ///
+    pub fn recurse(&self, input: &str) -> Result<(String, Cmd)> {
+        trace!("recurse={:?}", input);
+
+        let (input, command) = self.parse(input)?;
+        let input = match command {
+            // The end, we are at the Builtin or Alias level
+            //
+            Command::Alias { cmd, .. } | Command::Builtin { cmd, .. } => {
+                trace!("recurse=builtin/alias, end");
+                return Ok((input, cmd));
+            }
+            // XXX Need to recurse now but we must not lose any argument so append old input
+            //
+            Command::New { name, cmd } => {
+                trace!("recurse=new({})", name);
+                cmd + input.as_str()
+            }
+            _ => bail!("impossible in recurse"),
+        };
+        self.recurse(&input)
+    }
+
     /// Call insert() on the inner hash
     ///
     pub fn insert(&mut self, k: String, v: Command) -> &mut Self {
@@ -97,7 +120,7 @@ impl Debug for Engine {
 
 /// Primary aka builtin commands
 ///
-const CMDS: [&str; 5] = ["dice", "exit", "list", "open", "invalid"];
+const CMDS: [&str; 4] = ["dice", "exit", "list", "open"];
 
 /// Build a list of `Command` from the builtin commands
 ///
@@ -147,13 +170,6 @@ mod tests {
                     cmd: Cmd::Open,
                 },
             ),
-            (
-                "invalid".to_string(),
-                Command::Builtin {
-                    name: "invalid".to_string(),
-                    cmd: Cmd::Invalid,
-                },
-            ),
         ]);
 
         let b = builtin_commands();
@@ -177,13 +193,6 @@ mod tests {
                 Command::Builtin {
                     name: "open".to_string(),
                     cmd: Cmd::Open,
-                },
-            ),
-            (
-                "invalid".to_string(),
-                Command::Builtin {
-                    name: "invalid".to_string(),
-                    cmd: Cmd::Invalid,
                 },
             ),
         ]);
@@ -216,13 +225,6 @@ mod tests {
                 Command::Builtin {
                     name: "open".to_string(),
                     cmd: Cmd::Open,
-                },
-            ),
-            (
-                "invalid".to_string(),
-                Command::Builtin {
-                    name: "invalid".to_string(),
-                    cmd: Cmd::Invalid,
                 },
             ),
             (

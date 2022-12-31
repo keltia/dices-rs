@@ -9,10 +9,12 @@ Here we have the real commands that everything is reduced/compiled into.
 - Dice
 - Open
 
+There is the parser for the arguments (e.g. "2D6") and the bonus handling.
+
 ### Engine (other name for the CLI parser)
 
 This contains the entries of merged builtin commands and aliases, this is where user input from `rustyline` is parsed
-and executed.
+and executed. This is where everything is handled.
 
     let e = Engine::new();
 
@@ -38,3 +40,15 @@ For convenience, there are some aliases pre-defined:
 - roll for dice
 - doom for a special roll of 2D6
 - help for list
+
+## Execution
+
+- load alias file and merge builtin ones
+- load engine with builtin commands, merge in aliases
+- for each input
+  - parse
+  - list/exit/etc. break
+  - alias/builtin are directly executed
+  - new: we need to parse again possibly recursively until we get to a builtin/alias
+- get result and display it
+
