@@ -55,7 +55,7 @@ the format of the `aliases` file.
 The main commands the `dices` CLI support are:
 
 ```text
-dices/0.8.1 by Ollivier Robert <roberto@keltia.net>
+dices/0.9.1 by Ollivier Robert <roberto@keltia.net>
 Small CLI utility to roll dices.
 
 Dices>
@@ -104,8 +104,8 @@ move = "dice 3D6 -9"
 mouv = "move +7"
 ```
 
-As you can see, you can alias existing commands (not other alias or commands yet!) or create new ones (common usage I
-expect).
+As you can see, you can alias existing commands or create new ones (common usage I expect). You can even create
+new command pointing to aliases or other new commands (see `mouv` above which points to `move +7`, etc.).
 
 Some aliases are pre-defined at start to be useful:
 
@@ -116,7 +116,7 @@ Some aliases are pre-defined at start to be useful:
 
 - Document, document and more documentation
 - Tests and more tests
-- Allow alias to existing commands or other aliases
+- ~~Allow alias to existing commands or other aliases~~
 
 ## Contributing
 
