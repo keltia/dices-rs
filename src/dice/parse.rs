@@ -22,8 +22,8 @@ pub fn parse_dice(input: &str) -> IResult<&str, Dice> {
 }
 
 #[inline]
-pub fn parse_open(input: &str) -> IResult<&str, Dice> {
-    let into_dice = |s: u32| Dice::Open(s as usize);
+pub fn parse_open(input: &str) -> IResult<&str, DiceSet> {
+    let into_dice = |s: u32| DiceSet::from(Dice::Open(s as usize));
     let r = preceded(one_of("dD"), u32);
     map(r, into_dice)(input)
 }
@@ -64,9 +64,11 @@ pub fn parse_with_bonus(input: &str) -> IResult<&str, DiceSet> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use rstest::rstest;
     use std::vec;
+
+    use rstest::rstest;
+
+    use super::*;
 
     #[rstest]
     #[case("D1", DiceSet::from_vec(vec![Dice::Regular(1)]))]
@@ -83,12 +85,22 @@ mod tests {
     #[rstest]
     #[case("D1", DiceSet::from_vec(vec![Dice::Regular(1)]))]
     #[case("D6 +2", DiceSet::from_vec(vec![Dice::Regular(6), Dice::Bonus(2)]))]
-    #[case("d4 +1", DiceSet::from_vec(vec![Dice::Regular(4), Dice::Bonus(1)]))]
-    #[case("D6 =2", DiceSet::from_vec(vec![Dice::Regular(6)]))]
-    #[case("3D6", DiceSet::from_vec(vec![Dice::Regular(6), Dice::Regular(6), Dice::Regular(6)]))]
-    #[case("3D6 -2", DiceSet::from_vec(vec![Dice::Regular(6), Dice::Regular(6), Dice::Regular(6), Dice::Bonus(-2)]))]
+    #[case("d4 +1", DiceSet::from_vec(vec ! [Dice::Regular(4), Dice::Bonus(1)]))]
+    #[case("D6 =2", DiceSet::from_vec(vec ! [Dice::Regular(6)]))]
+    #[case("3D6", DiceSet::from_vec(vec ! [Dice::Regular(6), Dice::Regular(6), Dice::Regular(6)]))]
+    #[case("3D6 -2", DiceSet::from_vec(vec ! [Dice::Regular(6), Dice::Regular(6), Dice::Regular(6), Dice::Bonus(- 2)]))]
     fn test_parse_with_bonus(#[case] input: &str, #[case] res: DiceSet) {
         let r = parse_with_bonus(input);
+        assert!(r.is_ok());
+        let r = r.unwrap();
+        assert_eq!(res, r.1);
+    }
+
+    #[rstest]
+    #[case("D6", DiceSet::from(Dice::Open(6)))]
+    #[case("d4", DiceSet::from(Dice::Open(4)))]
+    fn test_parse_open(#[case] input: &str, #[case] res: DiceSet) {
+        let r = parse_open(input);
         assert!(r.is_ok());
         let r = r.unwrap();
         assert_eq!(res, r.1);
