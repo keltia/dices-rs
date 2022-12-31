@@ -6,7 +6,7 @@
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, bail, Result};
 use itertools::Itertools;
 use log::{debug, trace};
 use nom::{character::complete::alphanumeric1, IResult};
@@ -55,6 +55,30 @@ impl Engine {
             }
             None => return Err(anyhow!("unknown command")),
         }
+    }
+
+    /// Try to reduce/compile Command::New into a Builtin or Alias
+    ///
+    pub fn recurse(&self, input: &str) -> Result<(String, Cmd)> {
+        trace!("recurse={:?}", input);
+
+        let (input, command) = self.parse(input)?;
+        let input = match command {
+            // The end, we are at the Builtin or Alias level
+            //
+            Command::Alias { cmd, .. } | Command::Builtin { cmd, .. } => {
+                trace!("recurse=builtin/alias, end");
+                return Ok((input, cmd));
+            }
+            // XXX Need to recurse now but we must not lose any argument so append old input
+            //
+            Command::New { name, cmd } => {
+                trace!("recurse=new({})", name);
+                cmd + input.as_str()
+            }
+            _ => bail!("impossible in recurse"),
+        };
+        self.recurse(&input)
     }
 
     /// Call insert() on the inner hash
