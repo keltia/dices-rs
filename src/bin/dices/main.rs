@@ -166,7 +166,7 @@ fn main() -> Result<()> {
             }
             // These can be executed directly
             //
-            Command::Builtin { .. } | Command::Alias { .. } => {
+            Command::Builtin { cmd, .. } | Command::Alias { cmd, .. } => {
                 // Identify and execute each command
                 // Short one may be inserted here directly
                 // otherwise put them in `commands/mod.rs`
