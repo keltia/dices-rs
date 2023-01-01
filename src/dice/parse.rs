@@ -98,7 +98,7 @@ mod tests {
     }
 
     #[rstest]
-    #[case("D1", DiceSet::from_vec(vec![Dice::Regular(1)]))]
+    #[case("D1", DiceSet::from_vec(vec ! [Dice::Regular(1)]))]
     #[case("D6 +2", DiceSet::from_vec(vec ! [Dice::Regular(6), Dice::Bonus(2)]))]
     #[case("D6 +2 +1", DiceSet::from_vec(vec ! [Dice::Regular(6), Dice::Bonus(3)]))]
     #[case("d4 +1", DiceSet::from_vec(vec ! [Dice::Regular(4), Dice::Bonus(1)]))]
