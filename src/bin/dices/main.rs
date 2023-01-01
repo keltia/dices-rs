@@ -10,7 +10,6 @@ use rustyline::{
 use stderrlog::LogLevelNum::{Debug, Info, Trace};
 
 use crate::cli::Opts;
-use crate::engine::aliases::load_aliases;
 use crate::engine::{Command, Engine};
 use crate::version::version;
 
@@ -98,14 +97,14 @@ fn main() -> Result<()> {
         _ => Some(def_alias),
     };
 
-    // Load aliases if there is one.  If no file or nothing new, return the builtin aliases
-    //
-    let aliases = load_aliases(alias)?;
-    debug!("aliases = {:?}", aliases);
-
     // Create a new engine with all builtin commands
     //
     let mut commands = Engine::new();
+
+    // Load aliases if there is one.  If no file or nothing new, return the builtin aliases
+    //
+    let aliases = Engine::load_aliases(alias)?;
+    debug!("aliases = {:?}", aliases);
 
     // And merge in aliases
     //

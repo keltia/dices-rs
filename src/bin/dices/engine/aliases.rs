@@ -4,16 +4,16 @@
 //!
 //! ```no_run
 //! # use std::path::PathBuf;
-//! use dices_rs::aliases::load_aliases;
+//! use dices_rs::engine::Engine;
 //!
-//! let aliases = load_aliases(Some(PathBuf::from("/some/location/aliases")))?;
+//! let aliases = Engine::load_aliases(Some(PathBuf::from("/some/location/aliases")))?;
 //! ```
 //! or et get only the default aliases:
 //! ```no_run
 //! # use std::path::PathBuf;
-//! use dices_rs::aliases::load_aliases;
+//! use dices_rs::engine::Engine;
 //!
-//! let aliases = load_aliases(None).unwrap();
+//! let aliases = Engine::load_aliases(None).unwrap();
 //! ```
 //!
 //! File format:
@@ -41,7 +41,7 @@ use nom::{
 };
 
 use crate::engine::core::Cmd;
-use crate::engine::Command;
+use crate::engine::{Command, Engine};
 
 /// Parse a comment introduced by one of #, // and ! followed by a space
 ///
@@ -94,51 +94,54 @@ fn parse_string(input: &str) -> IResult<&str, &str> {
     delimited(one_of("\"'"), is_not("\""), one_of("\"'"))(input)
 }
 
-pub fn load_aliases(fname: Option<PathBuf>) -> Result<Vec<Command>> {
-    trace!("load_aliases");
+impl Engine {
+    /// Load aliases as a list of `Command`.
+    ///
+    pub fn load_aliases(fname: Option<PathBuf>) -> Result<Vec<Command>> {
+        trace!("load_aliases");
 
-    // Always load builtins
-    //
-    let mut list = builtin_aliases();
-    debug!("builtins = {:?}", list);
+        // Always load builtins
+        //
+        let mut list = builtin_aliases();
+        debug!("builtins = {:?}", list);
 
-    let mut added = match fname {
-        Some(fname) => {
-            if fname.exists() {
-                trace!("Reading {:?} file...", fname);
-                let content = fs::read_to_string(fname)?;
+        let mut added = match fname {
+            Some(fname) => {
+                if fname.exists() {
+                    trace!("Reading {:?} file...", fname);
+                    let content = fs::read_to_string(fname)?;
 
-                // Get all from file
-                //
-                let added: Vec<Command> = content
-                    .lines()
-                    .filter_map(|line| {
-                        let (_input, alias) = alt((parse_comment, parse_alias))(line).unwrap();
-                        // Skip comments
-                        //
-                        if alias != Command::Comment {
-                            Some(alias)
-                        } else {
-                            None
-                        }
-                    })
-                    .collect();
-                added
-            } else {
-                vec![]
+                    // Get all from file
+                    //
+                    let added: Vec<Command> = content
+                        .lines()
+                        .filter_map(|line| {
+                            let (_input, alias) = alt((parse_comment, parse_alias))(line).unwrap();
+                            // Skip comments
+                            //
+                            if alias != Command::Comment {
+                                Some(alias)
+                            } else {
+                                None
+                            }
+                        })
+                        .collect();
+                    added
+                } else {
+                    vec![]
+                }
             }
-        }
-        _ => vec![],
-    };
+            _ => vec![],
+        };
 
-    // Merge our builtin aliases
-    //
-    list.append(&mut added);
-    let list = list.into_iter().unique().collect::<Vec<Command>>();
+        // Merge our builtin aliases
+        //
+        list.append(&mut added);
+        let list = list.into_iter().unique().collect::<Vec<Command>>();
 
-    Ok(list)
+        Ok(list)
+    }
 }
-
 /// Define some builtin aliases
 ///
 fn builtin_aliases() -> Vec<Command> {
@@ -222,7 +225,7 @@ mod tests {
             },
         ];
 
-        let n = load_aliases(Some(fname));
+        let n = Engine::load_aliases(Some(fname));
         assert!(n.is_ok());
         let n = n.unwrap();
         assert_eq!(al, n);
@@ -241,7 +244,7 @@ mod tests {
             },
         ];
 
-        let n = load_aliases(None);
+        let n = Engine::load_aliases(None);
         assert!(n.is_ok());
         let n = n.unwrap();
         assert_eq!(al, n);
