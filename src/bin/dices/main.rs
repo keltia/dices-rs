@@ -160,7 +160,15 @@ fn main() -> Result<()> {
             Command::New { cmd, .. } => {
                 trace!("new={}", cmd);
 
-                let (input, cmd) = commands.recurse(&cmd)?;
+                // Call recurse with None to use the currently defined max recursion level (5).
+                //
+                let (input, cmd) = match commands.recurse(&cmd, None) {
+                    Ok((input, cmd)) => (input.to_string(), cmd),
+                    Err(e) => {
+                        println!("Error: {}", e.to_string());
+                        continue;
+                    }
+                };
                 let res = cmd.execute(&input);
                 res
             }
