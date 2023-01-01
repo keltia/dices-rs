@@ -6,14 +6,16 @@
 //! # use std::path::PathBuf;
 //! use dices_rs::engine::Engine;
 //!
-//! let aliases = Engine::load_aliases(Some(PathBuf::from("/some/location/aliases")))?;
+//! let e = Engine::new();
+//! let aliases = e.load_aliases(Some(PathBuf::from("/some/location/aliases")))?;
 //! ```
 //! or et get only the default aliases:
 //! ```no_run
 //! # use std::path::PathBuf;
 //! use dices_rs::engine::Engine;
 //!
-//! let aliases = Engine::load_aliases(None).unwrap();
+//! let e = Engine::new();
+//! let aliases = e.load_aliases(None).unwrap();
 //! ```
 //!
 //! File format:
@@ -97,7 +99,7 @@ fn parse_string(input: &str) -> IResult<&str, &str> {
 impl Engine {
     /// Load aliases as a list of `Command`.
     ///
-    pub fn load_aliases(fname: Option<PathBuf>) -> Result<Vec<Command>> {
+    pub fn load_aliases(&self, fname: Option<PathBuf>) -> Result<Vec<Command>> {
         trace!("load_aliases");
 
         // Always load builtins
@@ -225,7 +227,8 @@ mod tests {
             },
         ];
 
-        let n = Engine::load_aliases(Some(fname));
+        let e = Engine::new();
+        let n = e.load_aliases(Some(fname));
         assert!(n.is_ok());
         let n = n.unwrap();
         assert_eq!(al, n);
@@ -244,7 +247,8 @@ mod tests {
             },
         ];
 
-        let n = Engine::load_aliases(None);
+        let e = Engine::new();
+        let n = e.load_aliases(None);
         assert!(n.is_ok());
         let n = n.unwrap();
         assert_eq!(al, n);

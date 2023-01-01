@@ -103,7 +103,7 @@ fn main() -> Result<()> {
 
     // Load aliases if there is one.  If no file or nothing new, return the builtin aliases
     //
-    let aliases = Engine::load_aliases(alias)?;
+    let aliases = commands.load_aliases(alias)?;
     debug!("aliases = {:?}", aliases);
 
     // And merge in aliases
