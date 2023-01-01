@@ -165,7 +165,7 @@ fn main() -> Result<()> {
                 let (input, cmd) = match commands.recurse(&cmd, None) {
                     Ok((input, cmd)) => (input.to_string(), cmd),
                     Err(e) => {
-                        println!("Error: {}", e.to_string());
+                        println!("Error: {}", e);
                         continue;
                     }
                 };
