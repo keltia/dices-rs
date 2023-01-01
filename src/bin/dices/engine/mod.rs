@@ -143,7 +143,15 @@ impl Engine {
     pub fn list(&self) -> String {
         self.0
             .iter()
-            .map(|(n, c)| format!("{} = {:?}", n, c))
+            .map(|(n, c)| {
+                let tag = match c {
+                    Command::Alias { .. } => "alias",
+                    Command::Builtin { .. } => "builtin",
+                    Command::New { .. } => "macro",
+                    _ => "special",
+                };
+                format!("{tag}\t{} = {:?}", n, c)
+            })
             .join("\n")
     }
 }
