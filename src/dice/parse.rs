@@ -13,7 +13,6 @@
 //! - `parse_open_bonus`  for an open-ended dice
 
 use itertools::Itertools;
-use log::trace;
 use nom::{
     character::complete::{i8, one_of, space0, u32, u8},
     combinator::{map, opt},
