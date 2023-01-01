@@ -158,7 +158,7 @@ mod tests {
     fn test_parse_open_bonus(#[case] input: &str, #[case] out: DiceSet) {
         let r = parse_open_bonus(input);
         assert!(r.is_ok());
-        let (input, ds) = r.unwrap();
+        let (_input, ds) = r.unwrap();
         assert_eq!(out, ds);
     }
 
