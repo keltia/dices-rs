@@ -117,6 +117,12 @@ impl Engine {
         self.recurse(&input, Some(max))
     }
 
+    /// Check whether a given command exist
+    ///
+    pub fn exist(&self, name: &str) -> bool {
+        self.0.contains_key(name)
+    }
+
     /// Call insert() on the inner hash
     ///
     pub fn insert(&mut self, k: String, v: Command) -> &mut Self {
@@ -193,6 +199,8 @@ fn builtin_commands() -> Engine {
 
 #[cfg(test)]
 mod tests {
+    use rstest::rstest;
+
     use super::*;
 
     #[test]
@@ -283,6 +291,15 @@ mod tests {
         e.merge(doom);
 
         assert_eq!(all, e.0);
+    }
+
+    #[rstest]
+    #[case("list", true)]
+    #[case("exit", true)]
+    #[case("foo", false)]
+    fn test_engine_exist(#[case] input: &str, #[case] value: bool) {
+        let e = builtin_commands();
+        assert_eq!(value, e.exist(input));
     }
 
     /// TODO Finish the test
