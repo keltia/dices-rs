@@ -40,8 +40,8 @@ use nom::{
     IResult,
 };
 
-use crate::commands::core::Cmd;
-use crate::commands::Command;
+use crate::engine::core::Cmd;
+use crate::engine::Command;
 
 /// Parse a comment introduced by one of #, // and ! followed by a space
 ///

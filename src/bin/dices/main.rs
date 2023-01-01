@@ -10,13 +10,11 @@ use rustyline::{
 use stderrlog::LogLevelNum::{Debug, Info, Trace};
 
 use crate::cli::Opts;
-use crate::commands::aliases::load_aliases;
-use crate::commands::Command;
-use crate::engine::Engine;
+use crate::engine::aliases::load_aliases;
+use crate::engine::{Command, Engine};
 use crate::version::version;
 
 mod cli;
-mod commands;
 mod engine;
 mod version;
 
@@ -177,7 +175,7 @@ fn main() -> Result<()> {
             Command::Builtin { cmd, .. } | Command::Alias { cmd, .. } => {
                 // Identify and execute each command
                 // Short one may be inserted here directly
-                // otherwise put them in `commands/mod.rs`
+                // otherwise put them in `engine/mod.rs`
                 //
                 trace!("cmd={:?}", cmd);
                 let res = cmd.execute(&input);
