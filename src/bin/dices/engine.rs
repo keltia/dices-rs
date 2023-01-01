@@ -19,6 +19,8 @@ use crate::commands::Command;
 pub struct Engine(HashMap<String, Command>);
 
 impl Engine {
+    const MAX_RECUR: usize = 5;
+
     /// Create a new instance
     ///
     pub fn new() -> Self {
@@ -59,8 +61,15 @@ impl Engine {
 
     /// Try to reduce/compile Command::New into a Builtin or Alias
     ///
-    pub fn recurse(&self, input: &str) -> Result<(String, Cmd)> {
+    /// This is a tail recursive function, might be turned into an iterative one at some point
+    /// Not sure it is worth it.
+    ///
+    pub fn recurse(&self, input: &str, max: Option<usize>) -> Result<(String, Cmd)> {
         trace!("recurse={:?}", input);
+
+        // Set default recursion max
+        //
+        let mut max = max.unwrap_or(Engine::MAX_RECUR);
 
         let (input, command) = self.parse(input)?;
         let input = match command {
@@ -74,11 +83,17 @@ impl Engine {
             //
             Command::New { name, cmd } => {
                 trace!("recurse=new({})", name);
+                max -= 1;
                 cmd + input.as_str()
             }
             _ => bail!("impossible in recurse"),
         };
-        self.recurse(&input)
+        // Error out if too deep recursion
+        //
+        if max == 0 {
+            return Err(anyhow!("max recursion level reached for {}", input));
+        }
+        self.recurse(&input, Some(max))
     }
 
     /// Call insert() on the inner hash
