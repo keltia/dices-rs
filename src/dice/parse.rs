@@ -3,8 +3,17 @@
 //! This will be used by the command parser in `main.rs` to validate that the `dice`
 //! command is given the right arguments.
 //!
+//! Not everything is public because there is no need.
+//!
+//! Public API:
+//!
+//! - `parse_dice` for a single regular dice
+//! - `parse_open` for an open-ended dice
+//! - `parse_with_bonus` for regular dices
+//! - `parse_open_bonus`  for an open-ended dice
 
 use itertools::Itertools;
+use log::trace;
 use nom::{
     character::complete::{i8, one_of, space0, u32, u8},
     combinator::{map, opt},
@@ -65,14 +74,23 @@ fn parse_nbonus(input: &str) -> IResult<&str, std::primitive::i8> {
     map(r, sum)(input)
 }
 
-pub fn parse_with_bonus(input: &str) -> IResult<&str, DiceSet> {
-    let add_bonus = |(mut ds, b): (DiceSet, std::primitive::i8)| {
-        if b != 0 {
-            ds.0.push(Dice::Bonus(b.into()))
-        };
-        ds
+/// Extracted from parse_with_bonus
+///
+#[inline]
+fn add_bonus((mut ds, b): (DiceSet, std::primitive::i8)) -> DiceSet {
+    dbg!(&ds, &b);
+    if b != 0 {
+        ds.0.push(Dice::Bonus(b.into()))
     };
+    ds
+}
 
+pub fn parse_open_bonus(input: &str) -> IResult<&str, DiceSet> {
+    let r = pair(parse_open, parse_nbonus);
+    map(r, add_bonus)(input)
+}
+
+pub fn parse_with_bonus(input: &str) -> IResult<&str, DiceSet> {
     let r = pair(parse_ndices, parse_nbonus);
     map(r, add_bonus)(input)
 }
@@ -132,5 +150,25 @@ mod tests {
     fn test_parse_nbonus(#[case] input: &str, #[case] sum: i8) {
         let (_input, s) = parse_nbonus(input).unwrap();
         assert_eq!(sum, s);
+    }
+
+    #[rstest]
+    #[case("d6", DiceSet::from_vec(vec ! [Dice::Open(6)]))]
+    #[case("d6 +1", DiceSet::from_vec(vec ! [Dice::Open(6), Dice::Bonus(1)]))]
+    #[case("D4 -2", DiceSet::from_vec(vec ! [Dice::Open(4), Dice::Bonus(- 2)]))]
+    fn test_parse_open_bonus(#[case] input: &str, #[case] out: DiceSet) {
+        let r = parse_open_bonus(input);
+        assert!(r.is_ok());
+        let (input, ds) = r.unwrap();
+        assert_eq!(out, ds);
+    }
+
+    #[rstest]
+    #[case(DiceSet(vec ! [Dice::Open(6)]), 0, DiceSet(vec ! [Dice::Open(6)]))]
+    #[case(DiceSet(vec ! [Dice::Open(6)]), 1, DiceSet(vec ! [Dice::Open(6), Dice::Bonus(1)]))]
+    #[case(DiceSet(vec ! [Dice::Regular(4)]), - 2, DiceSet(vec ! [Dice::Regular(4), Dice::Bonus(- 2)]))]
+    fn test_add_bonus(#[case] input: DiceSet, #[case] bonus: i8, #[case] out: DiceSet) {
+        let ds = add_bonus((input, bonus));
+        assert_eq!(out, ds);
     }
 }
