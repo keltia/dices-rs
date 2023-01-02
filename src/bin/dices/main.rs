@@ -21,8 +21,6 @@ const BASE_DIR: &str = ".config";
 const ALIASES_FILE: &str = "aliases";
 const HISTORY_FILE: &str = "history";
 
-const PS1: &str = "Dices> ";
-
 /// Simple macro to generate PathBuf from a series of entries
 ///
 #[macro_export]
@@ -111,108 +109,8 @@ fn main() -> Result<()> {
     let commands = commands.merge(aliases);
     debug!("commands = {:?}", commands);
 
-    loop {
-        // Get next line
-        //
-        let line = match repl.readline(PS1) {
-            Ok(line) => line,
-            Err(ReadlineError::Interrupted) => break,
-            Err(e) => {
-                error!("{:?}", e);
-                break;
-            }
-        };
+    let status = commands.run(&mut repl)?;
 
-        trace!("{}", line);
-
-        // Save it
-        //
-        repl.add_history_entry(line.as_str());
-
-        let (input, cmd) = match commands.parse(&line) {
-            Ok((input, cmd)) => (input.to_string(), cmd),
-            Err(_) => {
-                println!("unknown command");
-                continue;
-            }
-        };
-
-        debug!("{:?}", cmd);
-
-        // Some actions have to be executed here because they do not involve the "core" dice-related
-        // commands and interact with the interactive shell like `exit` and `list`
-        let res = match cmd {
-            // Shortcut to exit
-            //
-            Command::Exit => break,
-
-            // Shortcut to list
-            //
-            Command::List => {
-                println!("{}", commands.list());
-                continue;
-            }
-            // The hard part is that we need to reenter the parser
-            //
-            Command::Macro { cmd, .. } => {
-                trace!("new={}", cmd);
-
-                // Call recurse with None to use the currently defined max recursion level (5).
-                //
-                let (input, cmd) = match commands.recurse(&cmd, None) {
-                    Ok((input, cmd)) => (input.to_string(), cmd),
-                    Err(e) => {
-                        println!("Error: {}", e);
-                        continue;
-                    }
-                };
-                let res = cmd.execute(&input);
-                res
-            }
-            // Alias to something that may be a New or Alias
-            //
-            Command::Alias { cmd, .. } => {
-                trace!("alias = {cmd} {input}");
-                if commands.exist(&cmd) {
-                    // We have an alias to another command
-                    //
-                }
-                let cmd = cmd + input.as_str();
-
-                // Call recurse with None to use the currently defined max recursion level (5).
-                //
-                let (input, cmd) = match commands.recurse(&cmd, None) {
-                    Ok((input, cmd)) => (input.to_string(), cmd),
-                    Err(e) => {
-                        println!("Error: {}", e);
-                        continue;
-                    }
-                };
-                let res = cmd.execute(&input);
-                res
-            }
-            // These can be executed directly
-            //
-            Command::Builtin { cmd, .. } => {
-                // Identify and execute each command
-                // Short one may be inserted here directly
-                // otherwise put them in `engine/mod.rs`
-                //
-                trace!("cmd={:?}", cmd);
-                let res = cmd.execute(&input);
-                dbg!(&res);
-                res
-            }
-            _ => Err(anyhow!("impossible command")),
-        };
-        match res {
-            Ok(res) => {
-                info!("roll = {:?}", res);
-                debug!("{:?}", res);
-            }
-            Err(e) => error!("{}", e.to_string()),
-        }
-    }
     repl.save_history(&hist)?;
-    Ok(())
+    Ok(status)
 }

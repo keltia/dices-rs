@@ -8,8 +8,11 @@ use std::fmt::{Debug, Formatter};
 
 use anyhow::{anyhow, bail, Result};
 use itertools::Itertools;
-use log::{debug, trace};
+use log::{debug, error, info, trace};
 use nom::{character::complete::alphanumeric1, IResult};
+use rustyline::{error::ReadlineError, Editor};
+
+use dices_rs::dice::result::Res;
 
 use self::core::Cmd;
 
@@ -61,6 +64,115 @@ impl Engine {
         builtin_commands()
     }
 
+    /// Main loop here, refactored from `main()`.
+    ///
+    pub fn run(&self, repl: &mut Editor<()>) -> Result<()> {
+        loop {
+            // Get next line
+            //
+            let line = match repl.readline(PS1) {
+                Ok(line) => line,
+                Err(ReadlineError::Interrupted) => break,
+                Err(e) => {
+                    error!("{:?}", e);
+                    break;
+                }
+            };
+
+            trace!("{}", line);
+
+            // Save it
+            //
+            repl.add_history_entry(line.as_str());
+
+            // First analysis
+            //
+            let (input, cmd) = match self.parse(&line) {
+                Ok((input, cmd)) => (input.to_string(), cmd),
+                Err(_) => {
+                    println!("unknown command");
+                    continue;
+                }
+            };
+
+            trace!("cmd={:?}", cmd);
+
+            // Some actions have to be executed here because they do not involve the "core" dice-related
+            // commands and interact with the interactive shell like `exit` and `list`
+            //
+            let res = match cmd {
+                // Shortcut to exit
+                //
+                Command::Exit => break,
+
+                // Shortcut to list
+                //
+                Command::List => {
+                    println!("{}", self.list());
+                    continue;
+                }
+                // Re-enter the parser until be get to a Builtin
+                //
+                Command::Macro { cmd, .. } => {
+                    trace!("new={}", cmd);
+
+                    // Call recurse with None to use the currently defined max recursion level (5).
+                    //
+                    let (input, cmd) = match self.recurse(&cmd, None) {
+                        Ok((input, cmd)) => (input.to_string(), cmd),
+                        Err(e) => {
+                            println!("Error: {}", e);
+                            continue;
+                        }
+                    };
+                    let res = cmd.execute(&input);
+                    res
+                }
+                // Alias to something that may be a New or Alias
+                //
+                Command::Alias { cmd, .. } => {
+                    trace!("alias = {cmd} {input}");
+                    if self.exist(&cmd) {
+                        // We have an alias to another command
+                        //
+                    }
+                    let cmd = cmd.to_string() + input.as_str();
+
+                    // Call recurse with None to use the currently defined max recursion level (5).
+                    //
+                    let (input, cmd) = match self.recurse(&cmd, None) {
+                        Ok((input, cmd)) => (input.to_string(), cmd),
+                        Err(e) => {
+                            println!("Error: {}", e);
+                            continue;
+                        }
+                    };
+                    let res = cmd.execute(&input);
+                    res
+                }
+                // These can be executed directly
+                //
+                Command::Builtin { cmd, .. } => {
+                    // Identify and execute each command
+                    // Short one may be inserted here directly
+                    // otherwise put them in `engine/mod.rs`
+                    //
+                    trace!("cmd={:?}", cmd);
+                    let res = cmd.execute(&input);
+                    res
+                }
+                _ => Err(anyhow!("impossible command")),
+            };
+            match res {
+                Ok(res) => {
+                    info!("roll = {:?}", res);
+                    debug!("{:?}", res);
+                }
+                Err(e) => error!("{}", e.to_string()),
+            }
+        }
+        Ok(())
+    }
     /// Parse then validate
     ///
     pub fn parse(&self, input: &str) -> Result<(String, Command)> {
