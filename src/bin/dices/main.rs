@@ -97,19 +97,15 @@ fn main() -> Result<()> {
     //
     trace!("Create engine");
     let mut commands = Engine::new();
+    commands.with(alias);
 
-    // Load aliases if there is one.  If no file or nothing new, return the builtin aliases
-    //
-    let aliases = commands.load_aliases(alias)?;
-    debug!("aliases = {:?}", aliases);
+    println!("Available commands:\n{}\n", commands.list());
 
-    // And merge in aliases
-    //
-    let commands = commands.merge(aliases);
-    debug!("commands = {:?}", commands);
-
-    let status = commands.run(&mut repl)?;
-
-    repl.save_history(&hist)?;
-    Ok(status)
+    match commands.run(&mut repl) {
+        Ok(_) => match repl.save_history(&hist) {
+            Ok(()) => Ok(()),
+            Err(e) => Err(anyhow!("{}", e.to_string())),
+        },
+        Err(e) => Err(anyhow!(e.to_string())),
+    }
 }
