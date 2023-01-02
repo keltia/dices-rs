@@ -35,6 +35,19 @@ pub enum Command {
     List,
 }
 
+impl Command {
+    /// Execute defers to `Cmd::execute` for `Builtin`.
+    ///
+    pub fn execute(&self, input: &str) -> Result<Res> {
+        match self {
+            Command::Builtin { cmd, .. } => cmd.execute(input),
+            _ => Err(anyhow!("you can't execute other than Builtin")),
+        }
+    }
+}
+
+const PS1: &str = "Dices> ";
+
 /// Easier to carry around
 ///
 pub struct Engine(HashMap<String, Command>);
