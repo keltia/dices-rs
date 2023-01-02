@@ -67,7 +67,7 @@ fn main() -> Result<()> {
         .init()
         .unwrap();
 
-    debug!("Load config...");
+    trace!("Load config...");
 
     // Setup readline
     //
@@ -82,7 +82,7 @@ fn main() -> Result<()> {
     // Load history if there is one
     //
     if hist.exists() {
-        debug!("Load history from {:?}...", hist);
+        trace!("Load history from {:?}...", hist);
         repl.load_history(&hist)?;
     }
 
@@ -95,6 +95,7 @@ fn main() -> Result<()> {
 
     // Create a new engine with all builtin commands
     //
+    trace!("Create engine");
     let mut commands = Engine::new();
 
     // Load aliases if there is one.  If no file or nothing new, return the builtin aliases
