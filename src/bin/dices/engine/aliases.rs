@@ -30,7 +30,6 @@
 use std::fs;
 use std::path::PathBuf;
 
-use anyhow::Result;
 use itertools::Itertools;
 use log::{debug, trace};
 use nom::{
