@@ -63,7 +63,6 @@ fn parse_alias(input: &str) -> IResult<&str, Command> {
     trace!("parse_alias");
     let check = |(first, second): (&str, &str)| {
         trace!("{}", second);
-        let cmd = Cmd::from(second);
 
         Command::Macro {
             name: first.to_string(),
