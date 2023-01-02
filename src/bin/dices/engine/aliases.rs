@@ -57,7 +57,8 @@ fn parse_comment(input: &str) -> IResult<&str, Command> {
     map(r, ret_comment)(input)
 }
 
-/// Parse a line with either:
+/// Parse a line, return a Command::Macro that will be interpreted above as existing (alias) or
+/// new (macro)
 ///
 /// - command alias nom1 = nom2
 /// - new command new = "3D4"
@@ -68,17 +69,9 @@ fn parse_alias(input: &str) -> IResult<&str, Command> {
         trace!("{}", second);
         let cmd = Cmd::from(second);
 
-        // If the command is invalid, we have a new command, not an alias
-        //
-        match cmd {
-            Cmd::Invalid => Command::New {
-                name: first.to_string(),
-                cmd: second.to_string(),
-            },
-            _ => Command::Alias {
-                name: first.to_string(),
-                cmd,
-            },
+        Command::Macro {
+            name: first.to_string(),
+            cmd: second.to_string(),
         }
     };
     let r = separated_pair(
@@ -151,7 +144,7 @@ fn builtin_aliases() -> Vec<Command> {
     vec![
         // Dices of Doom(tm)
         //
-        Command::New {
+        Command::Macro {
             name: "doom".to_string(),
             cmd: "dice 2D6".to_string(),
         },
@@ -205,7 +198,7 @@ mod tests {
     fn test_load_aliases_with_file() {
         let fname: PathBuf = makepath!("testdata", "aliases");
         let al = vec![
-            Command::New {
+            Command::Macro {
                 name: "doom".to_string(),
                 cmd: "dice 2D6".to_string(),
             },
@@ -217,11 +210,11 @@ mod tests {
                 name: "rulez".to_string(),
                 cmd: Cmd::Dice,
             },
-            Command::New {
+            Command::Macro {
                 name: "move".to_string(),
                 cmd: "dice 3D6 -9".to_string(),
             },
-            Command::New {
+            Command::Macro {
                 name: "mouv".to_string(),
                 cmd: "move +7".to_string(),
             },
@@ -237,7 +230,7 @@ mod tests {
     #[test]
     fn test_load_aliases_with_none() {
         let al = vec![
-            Command::New {
+            Command::Macro {
                 name: "doom".to_string(),
                 cmd: "dice 2D6".to_string(),
             },

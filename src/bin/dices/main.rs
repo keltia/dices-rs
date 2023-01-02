@@ -154,7 +154,7 @@ fn main() -> Result<()> {
             }
             // The hard part is that we need to reenter the parser
             //
-            Command::New { cmd, .. } => {
+            Command::Macro { cmd, .. } => {
                 trace!("new={}", cmd);
 
                 // Call recurse with None to use the currently defined max recursion level (5).

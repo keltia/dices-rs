@@ -22,7 +22,7 @@ pub mod core;
 #[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd)]
 pub enum Command {
     /// New command:  define a specific command in a string
-    New { name: String, cmd: String },
+    Macro { name: String, cmd: String },
     /// Builtin command
     Builtin { name: String, cmd: Cmd },
     /// Alias of an existing command
@@ -102,7 +102,7 @@ impl Engine {
             }
             // XXX Need to recurse now but we must not lose any argument so append old input
             //
-            Command::New { name, cmd } => {
+            Command::Macro { name, cmd } => {
                 trace!("recurse=new({})", name);
                 max -= 1;
                 cmd + input.as_str()
@@ -136,7 +136,7 @@ impl Engine {
         // And merge in aliases
         //
         aliases.iter().for_each(|a| match a {
-            Command::New { ref name, .. } | Command::Alias { ref name, .. } => {
+            Command::Macro { ref name, .. } | Command::Alias { ref name, .. } => {
                 self.insert(name.to_owned(), a.to_owned());
             }
             _ => (),
@@ -153,7 +153,7 @@ impl Engine {
                 let tag = match c {
                     Command::Alias { .. } => "alias",
                     Command::Builtin { .. } => "builtin",
-                    Command::New { .. } => "macro",
+                    Command::Macro { .. } => "macro",
                     _ => "special",
                 };
                 format!("{tag}\t{} = {:?}", n, c)
@@ -257,7 +257,7 @@ mod tests {
     fn test_engine_merge() {
         let mut e = Engine::new();
 
-        let doom = vec![Command::New {
+        let doom = vec![Command::Macro {
             name: "doom".to_string(),
             cmd: "2D6".to_string(),
         }];
@@ -281,7 +281,7 @@ mod tests {
             ),
             (
                 "doom".to_string(),
-                Command::New {
+                Command::Macro {
                     name: "doom".to_string(),
                     cmd: "2D6".to_string(),
                 },
