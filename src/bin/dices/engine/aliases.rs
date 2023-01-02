@@ -59,9 +59,6 @@ fn parse_comment(input: &str) -> IResult<&str, Command> {
 /// Parse a line, return a Command::Macro that will be interpreted above as existing (alias) or
 /// new (macro)
 ///
-/// - command alias nom1 = nom2
-/// - new command new = "3D4"
-///
 fn parse_alias(input: &str) -> IResult<&str, Command> {
     trace!("parse_alias");
     let check = |(first, second): (&str, &str)| {
