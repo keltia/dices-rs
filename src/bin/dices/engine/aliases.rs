@@ -91,8 +91,8 @@ fn parse_string(input: &str) -> IResult<&str, &str> {
 impl Engine {
     /// Load aliases as a list of `Command`.
     ///
-    pub fn load_aliases(&self, fname: Option<PathBuf>) -> Result<Vec<Command>> {
-        trace!("load_aliases");
+    pub fn with(&mut self, fname: Option<PathBuf>) -> &mut Self {
+        trace!("with");
 
         // Always load builtins
         //
@@ -103,7 +103,7 @@ impl Engine {
             Some(fname) => {
                 if fname.exists() {
                     trace!("Reading {:?} file...", fname);
-                    let content = fs::read_to_string(fname)?;
+                    let content = fs::read_to_string(fname).unwrap_or_else(|_| "".to_string());
 
                     // Get all from file
                     //
