@@ -233,6 +233,10 @@ mod tests {
                 name: "mouv".to_string(),
                 cmd: "move +7".to_string(),
             },
+            Command::Alias {
+                name: "quit".to_string(),
+                cmd: "exit".to_string(),
+            },
         ];
 
         let e = Engine::new();

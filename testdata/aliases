@@ -8,3 +8,5 @@ roll = "dice"
 move = "dice 3D6 -9"
 # new command with argument
 mouv = "move +7"
+# alias to another command
+quit = exit
