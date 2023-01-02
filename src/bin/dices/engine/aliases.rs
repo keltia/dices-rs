@@ -167,7 +167,7 @@ fn builtin_aliases() -> Vec<Command> {
         //
         Command::Alias {
             name: "roll".to_string(),
-            cmd: Cmd::Dice,
+            cmd: "dice".to_string(),
         },
     ]
 }
@@ -219,11 +219,11 @@ mod tests {
             },
             Command::Alias {
                 name: "roll".to_string(),
-                cmd: Cmd::Dice,
+                cmd: "dice".to_string(),
             },
             Command::Alias {
                 name: "rulez".to_string(),
-                cmd: Cmd::Dice,
+                cmd: "dice".to_string(),
             },
             Command::Macro {
                 name: "move".to_string(),
@@ -251,7 +251,7 @@ mod tests {
             },
             Command::Alias {
                 name: "roll".to_string(),
-                cmd: Cmd::Dice,
+                cmd: "dice".to_string(),
             },
         ];
 

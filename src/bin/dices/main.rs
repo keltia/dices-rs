@@ -169,9 +169,31 @@ fn main() -> Result<()> {
                 let res = cmd.execute(&input);
                 res
             }
+            // Alias to something that may be a New or Alias
+            //
+            Command::Alias { cmd, .. } => {
+                trace!("alias = {cmd} {input}");
+                if commands.exist(&cmd) {
+                    // We have an alias to another command
+                    //
+                }
+                let cmd = cmd + input.as_str();
+
+                // Call recurse with None to use the currently defined max recursion level (5).
+                //
+                let (input, cmd) = match commands.recurse(&cmd, None) {
+                    Ok((input, cmd)) => (input.to_string(), cmd),
+                    Err(e) => {
+                        println!("Error: {}", e);
+                        continue;
+                    }
+                };
+                let res = cmd.execute(&input);
+                res
+            }
             // These can be executed directly
             //
-            Command::Builtin { cmd, .. } | Command::Alias { cmd, .. } => {
+            Command::Builtin { cmd, .. } => {
                 // Identify and execute each command
                 // Short one may be inserted here directly
                 // otherwise put them in `engine/mod.rs`

@@ -26,7 +26,7 @@ pub enum Command {
     /// Builtin command
     Builtin { name: String, cmd: Cmd },
     /// Alias of an existing command
-    Alias { name: String, cmd: Cmd },
+    Alias { name: String, cmd: String },
     /// Comment
     Comment,
     /// End of the game
@@ -94,11 +94,18 @@ impl Engine {
 
         let (input, command) = self.parse(input)?;
         let input = match command {
-            // The end, we are at the Builtin or Alias level
+            // The end, we are at the Builtin level
             //
-            Command::Alias { cmd, .. } | Command::Builtin { cmd, .. } => {
-                trace!("recurse=builtin/alias, end");
-                return Ok((input, cmd));
+            Command::Builtin { .. } => {
+                trace!("recurse=builtin, end");
+                return Ok((input, command));
+            }
+            // This is an alias
+            //
+            Command::Alias { cmd, .. } => {
+                trace!("recurse=alias({cmd})");
+                max -= 1;
+                cmd + input.as_str()
             }
             // XXX Need to recurse now but we must not lose any argument so append old input
             //
