@@ -112,12 +112,27 @@ impl Engine {
                         .lines()
                         .filter_map(|line| {
                             let (_input, alias) = alt((parse_comment, parse_alias))(line).unwrap();
-                            // Skip comments
+                            // Look at what we got
                             //
-                            if alias != Command::Comment {
-                                Some(alias)
-                            } else {
-                                None
+                            match alias {
+                                // Check whether the "new" command points to a known command then
+                                // it is an alias, not a new command
+                                //
+                                Command::Macro { name, cmd } => {
+                                    // Do we have an alias to a known command?
+                                    //
+                                    if self.exist(&cmd) {
+                                        Some(Command::Alias { name, cmd })
+                                    } else {
+                                        Some(Command::Macro { name, cmd })
+                                    }
+                                }
+                                // Builtins are fine
+                                //
+                                Command::Builtin { .. } => Some(alias),
+                                // Skip the rest
+                                //
+                                _ => None,
                             }
                         })
                         .collect();
