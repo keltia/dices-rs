@@ -1,9 +1,9 @@
 # define a new command
 doom = "dice 2D6"
-! this is an alias
+! this is an alias to builtin
 rulez = dice
 // and another one
-roll = dice
+roll = "dice"
 # Movement roll
 move = "dice 3D6 -9"
 # new command with argument
