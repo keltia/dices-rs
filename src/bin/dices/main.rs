@@ -3,14 +3,12 @@ use std::path::PathBuf;
 use anyhow::{anyhow, Result};
 use clap::Parser;
 use home::home_dir;
-use log::{debug, error, info, trace};
-use rustyline::{
-    config::BellStyle::Visible, error::ReadlineError, CompletionType::List, Config, Editor,
-};
+use log::{debug, trace};
+use rustyline::{config::BellStyle::Visible, CompletionType::List, Config, Editor};
 use stderrlog::LogLevelNum::{Debug, Info, Trace};
 
 use crate::cli::Opts;
-use crate::engine::{Command, Engine};
+use crate::engine::Engine;
 use crate::version::version;
 
 mod cli;
