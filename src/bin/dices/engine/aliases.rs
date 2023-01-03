@@ -237,8 +237,7 @@ mod tests {
             },
         ];
 
-        let e = Engine::new();
-        let n = e.load_aliases(Some(fname));
+        let n = Engine::new().with(Some(fname));
         assert!(n.is_ok());
         let n = n.unwrap();
         assert_eq!(al, n);
@@ -257,8 +256,7 @@ mod tests {
             },
         ];
 
-        let e = Engine::new();
-        let n = e.load_aliases(None);
+        let n = Engine::new().with(None);
         assert!(n.is_ok());
         let n = n.unwrap();
         assert_eq!(al, n);
