@@ -381,6 +381,7 @@ mod tests {
             ),
         ]);
 
+        let e = Engine::new();
         let b = builtin_commands();
         assert_eq!(all, b.0);
     }
