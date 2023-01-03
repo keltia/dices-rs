@@ -294,11 +294,29 @@ impl Engine {
     }
 }
 
-impl Debug for Engine {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self.0)
+    /// Returns all aliases
+    ///
+    pub fn aliases(&self) -> Vec<String> {
+        self.0
+            .iter()
+            .filter_map(|(_name, cmd, ..)| match cmd {
+                Command::Alias { name, .. } => Some(name.to_owned()),
+                _ => None,
+            })
+            .collect()
     }
-}
+
+    /// Returns all macros
+    ///
+    pub fn macros(&self) -> Vec<String> {
+        self.0
+            .iter()
+            .filter_map(|(_name, cmd)| match cmd {
+                Command::Macro { name, .. } => Some(name.to_owned()),
+                _ => None,
+            })
+            .collect()
+    }
 
     /// Primary aka builtin commands
     ///
