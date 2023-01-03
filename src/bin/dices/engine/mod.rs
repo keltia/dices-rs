@@ -212,8 +212,8 @@ impl Engine {
     /// This is a tail recursive function, might be turned into an iterative one at some point
     /// Not sure it is worth it.
     ///
-    pub fn recurse(&self, input: &str, max: Option<usize>) -> Result<(String, Cmd)> {
-        trace!("recurse={:?}", input);
+    pub fn recurse(&self, input: &str, max: Option<usize>) -> Result<(String, Command)> {
+        trace!("recurse({max:?})={:?}", input);
 
         // Set default recursion max
         //
@@ -241,6 +241,7 @@ impl Engine {
                 max -= 1;
                 cmd + input.as_str()
             }
+            Command::List | Command::Exit => return Ok((input, command)),
             _ => bail!("impossible in recurse"),
         };
         // Error out if too deep recursion
