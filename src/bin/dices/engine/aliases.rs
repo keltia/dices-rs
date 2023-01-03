@@ -237,10 +237,12 @@ mod tests {
             },
         ];
 
-        let n = Engine::new().with(Some(fname));
-        assert!(n.is_ok());
-        let n = n.unwrap();
-        assert_eq!(al, n);
+        let aliases = vec!["rulez", "roll", "quit"];
+
+        let mut n = Engine::new();
+        n.with(Some(fname));
+        let n = n.aliases();
+        assert_eq!(aliases, n);
     }
 
     #[test]
@@ -256,9 +258,9 @@ mod tests {
             },
         ];
 
-        let n = Engine::new().with(None);
-        assert!(n.is_ok());
-        let n = n.unwrap();
-        assert_eq!(al, n);
+        let mut n = Engine::new();
+        n.with(None);
+        let n = n.aliases();
+        assert_eq!(vec!["roll"], n);
     }
 }

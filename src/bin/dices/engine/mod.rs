@@ -382,7 +382,7 @@ mod tests {
         ]);
 
         let e = Engine::new();
-        let b = builtin_commands();
+        let b = Engine::builtin_commands();
         assert_eq!(all, b.0);
     }
 
@@ -458,6 +458,13 @@ mod tests {
     fn test_engine_exist(#[case] input: &str, #[case] value: bool) {
         let e = Engine::builtin_commands();
         assert_eq!(value, e.exist(input));
+    }
+
+    #[test]
+    fn test_aliases() {
+        let e = Engine::builtin_commands();
+        let v_str = e.aliases();
+        assert!(v_str.is_empty());
     }
 
     /// TODO Finish the test
