@@ -142,9 +142,12 @@ impl Engine {
         // Merge our builtin aliases
         //
         list.append(&mut added);
-        let list = list.into_iter().unique().collect::<Vec<Command>>();
 
-        Ok(list)
+        let list = list.into_iter().unique().collect::<Vec<Command>>();
+        debug!("aliases={list:?}");
+        trace!("{} aliases/macros added", list.len());
+
+        self.merge(list)
     }
 }
 /// Define some builtin aliases
