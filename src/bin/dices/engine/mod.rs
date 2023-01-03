@@ -66,7 +66,7 @@ impl Engine {
 
     /// Main loop here, refactored from `main()`.
     ///
-    pub fn run(&self, repl: &mut Editor<()>) -> Result<()> {
+    pub fn run(&mut self, repl: &mut Editor<()>) -> Result<()> {
         loop {
             // Get next line
             //
