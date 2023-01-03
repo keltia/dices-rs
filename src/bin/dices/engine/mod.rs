@@ -126,6 +126,7 @@ impl Engine {
                         }
                     };
                     let res = cmd.execute(&input);
+                    dbg!(&res);
                     res
                 }
                 // Alias to something that may be a New or Alias
@@ -148,6 +149,7 @@ impl Engine {
                         }
                     };
                     let res = cmd.execute(&input);
+                    dbg!(&res);
                     res
                 }
                 // These can be executed directly
@@ -159,6 +161,7 @@ impl Engine {
                     //
                     trace!("cmd={:?}", cmd);
                     let res = cmd.execute(&input);
+                    dbg!(&res);
                     res
                 }
                 _ => Err(anyhow!("impossible command")),
@@ -183,6 +186,7 @@ impl Engine {
         }
 
         debug!("all={:?}", self.0);
+
         // Get command name
         //
         let (input, name) = match parse_keyword(input) {
@@ -190,15 +194,13 @@ impl Engine {
             Err(_) => return Err(anyhow!("invalid command")),
         };
 
-        debug!("{:?} - {}", name, input);
-
-        trace!("name={}", name);
+        trace!("name={name} with input={input}");
 
         // Validate that a given input does map to a `Command`
         //
         match self.0.get(&name) {
             Some(cmd) => {
-                trace!("found {:?}", cmd);
+                trace!("parse found {:?}", cmd);
                 Ok((input, cmd.to_owned()))
             }
             None => return Err(anyhow!("unknown command")),
@@ -246,6 +248,7 @@ impl Engine {
         if max == 0 {
             return Err(anyhow!("max recursion level reached for {}", input));
         }
+        trace!("recurse(input)={input} max={max}");
         self.recurse(&input, Some(max))
     }
 
@@ -292,7 +295,6 @@ impl Engine {
             })
             .join("\n")
     }
-}
 
     /// Returns all aliases
     ///
