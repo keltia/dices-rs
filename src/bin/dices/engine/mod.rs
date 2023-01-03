@@ -61,7 +61,7 @@ impl Engine {
     /// Create a new instance
     ///
     pub fn new() -> Self {
-        builtin_commands()
+        Self::builtin_commands()
     }
 
     /// Main loop here, refactored from `main()`.
@@ -300,17 +300,15 @@ impl Debug for Engine {
     }
 }
 
-/// Primary aka builtin commands
-///
-const CMDS: [&str; 4] = ["dice", "exit", "list", "open"];
+    /// Primary aka builtin commands
+    ///
+    const CMDS: [&str; 4] = ["dice", "exit", "list", "open"];
 
-/// Build a list of `Command` from the builtin commands
-///
-fn builtin_commands() -> Engine {
-    debug!("builtin_commands");
-    let all: Vec<(String, Command)> = CMDS
-        .iter()
-        .map(|&n| match n {
+    /// Build a list of `Command` from the builtin commands
+    ///
+    fn builtin_commands() -> Engine {
+        debug!("builtin_commands");
+        let all = Self::CMDS.iter().map(|&n| match n {
             // These are caught before
             //
             "exit" => (n.to_string(), Command::Exit),
@@ -324,9 +322,15 @@ fn builtin_commands() -> Engine {
                     cmd: Cmd::from(n),
                 },
             ),
-        })
-        .collect();
-    Engine(HashMap::<String, Command>::from_iter(all))
+        });
+        Engine(HashMap::<String, Command>::from_iter(all))
+    }
+}
+
+impl Debug for Engine {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self.0)
+    }
 }
 
 #[cfg(test)]
@@ -430,7 +434,7 @@ mod tests {
     #[case("exit", true)]
     #[case("foo", false)]
     fn test_engine_exist(#[case] input: &str, #[case] value: bool) {
-        let e = builtin_commands();
+        let e = Engine::builtin_commands();
         assert_eq!(value, e.exist(input));
     }
 
@@ -438,8 +442,8 @@ mod tests {
     ///
     #[test]
     fn test_commands_list() {
-        let list = builtin_commands();
+        let e = Engine::builtin_commands();
         let _str = r##""##;
-        dbg!(list.list());
+        dbg!(e.list());
     }
 }
