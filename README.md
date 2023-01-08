@@ -55,7 +55,7 @@ the format of the `aliases` file.
 The main commands the `dices` CLI support are:
 
 ```text
-dices/0.9.1 by Ollivier Robert <roberto@keltia.net>
+dices/0.9.3 by Ollivier Robert <roberto@keltia.net>
 Small CLI utility to roll dices.
 
 Dices>
