@@ -79,6 +79,14 @@ Dices>
 
   List all available commands including aliases.
 
+- `aliases`
+
+List only aliases.
+
+- `macros`
+
+List all macros.
+
 - `exit`
 
   Should be obvious
