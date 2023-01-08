@@ -1,6 +1,6 @@
 [package]
 name = "dices-rs"
-version = "0.9.2"
+version = "0.9.3"
 authors = ["Ollivier Robert <roberto@keltia.net>"]
 description = "Small CLI utility to roll dices."
 edition = "2021"
