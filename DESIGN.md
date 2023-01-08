@@ -48,7 +48,8 @@ For convenience, there are some aliases pre-defined:
 - for each input
   - parse
   - list/exit/etc. break
-  - alias/builtin are directly executed
+  - alias can point to a New or another Alias
+  - builtin are directly executed
   - new: we need to parse again possibly recursively until we get to a builtin/alias
 - get result and display it
 

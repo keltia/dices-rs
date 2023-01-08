@@ -42,7 +42,7 @@ impl From<&str> for Cmd {
 }
 
 impl Cmd {
-    pub fn execute(self, input: &str) -> Result<Res> {
+    pub fn execute(&self, input: &str) -> Result<Res> {
         trace!("cmd::execute");
         let r = match self {
             Cmd::Dice => preceded(space0, parse_with_bonus)(input),

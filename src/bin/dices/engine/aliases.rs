@@ -4,16 +4,18 @@
 //!
 //! ```no_run
 //! # use std::path::PathBuf;
-//! use dices_rs::aliases::load_aliases;
+//! use dices_rs::engine::Engine;
 //!
-//! let aliases = load_aliases(Some(PathBuf::from("/some/location/aliases")))?;
+//! let e = Engine::new();
+//! let aliases = e.load_aliases(Some(PathBuf::from("/some/location/aliases")))?;
 //! ```
 //! or et get only the default aliases:
 //! ```no_run
 //! # use std::path::PathBuf;
-//! use dices_rs::aliases::load_aliases;
+//! use dices_rs::engine::Engine;
 //!
-//! let aliases = load_aliases(None).unwrap();
+//! let e = Engine::new();
+//! let aliases = e.load_aliases(None).unwrap();
 //! ```
 //!
 //! File format:
@@ -28,7 +30,6 @@
 use std::fs;
 use std::path::PathBuf;
 
-use anyhow::Result;
 use itertools::Itertools;
 use log::{debug, trace};
 use nom::{
@@ -40,8 +41,7 @@ use nom::{
     IResult,
 };
 
-use crate::commands::core::Cmd;
-use crate::commands::Command;
+use crate::engine::{Command, Engine};
 
 /// Parse a comment introduced by one of #, // and ! followed by a space
 ///
@@ -55,28 +55,17 @@ fn parse_comment(input: &str) -> IResult<&str, Command> {
     map(r, ret_comment)(input)
 }
 
-/// Parse a line with either:
-///
-/// - command alias nom1 = nom2
-/// - new command new = "3D4"
+/// Parse a line, return a Command::Macro that will be interpreted above as existing (alias) or
+/// new (macro)
 ///
 fn parse_alias(input: &str) -> IResult<&str, Command> {
     trace!("parse_alias");
     let check = |(first, second): (&str, &str)| {
         trace!("{}", second);
-        let cmd = Cmd::from(second);
 
-        // If the command is invalid, we have a new command, not an alias
-        //
-        match cmd {
-            Cmd::Invalid => Command::New {
-                name: first.to_string(),
-                cmd: second.to_string(),
-            },
-            _ => Command::Alias {
-                name: first.to_string(),
-                cmd,
-            },
+        Command::Macro {
+            name: first.to_string(),
+            cmd: second.to_string(),
         }
     };
     let r = separated_pair(
@@ -94,51 +83,72 @@ fn parse_string(input: &str) -> IResult<&str, &str> {
     delimited(one_of("\"'"), is_not("\""), one_of("\"'"))(input)
 }
 
-pub fn load_aliases(fname: Option<PathBuf>) -> Result<Vec<Command>> {
-    trace!("load_aliases");
+impl Engine {
+    /// Load aliases as a list of `Command`.
+    ///
+    pub fn with(&mut self, fname: Option<PathBuf>) -> &mut Self {
+        trace!("with");
 
-    // Always load builtins
-    //
-    let mut list = builtin_aliases();
-    debug!("builtins = {:?}", list);
+        // Always load builtins
+        //
+        let mut list = builtin_aliases();
+        debug!("builtins = {:?}", list);
 
-    let mut added = match fname {
-        Some(fname) => {
-            if fname.exists() {
-                trace!("Reading {:?} file...", fname);
-                let content = fs::read_to_string(fname)?;
+        let mut added = match fname {
+            Some(fname) => {
+                if fname.exists() {
+                    trace!("Reading {:?} file...", fname);
+                    let content = fs::read_to_string(fname).unwrap_or_else(|_| "".to_string());
 
-                // Get all from file
-                //
-                let added: Vec<Command> = content
-                    .lines()
-                    .filter_map(|line| {
-                        let (_input, alias) = alt((parse_comment, parse_alias))(line).unwrap();
-                        // Skip comments
-                        //
-                        if alias != Command::Comment {
-                            Some(alias)
-                        } else {
-                            None
-                        }
-                    })
-                    .collect();
-                added
-            } else {
-                vec![]
+                    // Get all from file
+                    //
+                    let added: Vec<Command> = content
+                        .lines()
+                        .filter_map(|line| {
+                            let (_input, alias) = alt((parse_comment, parse_alias))(line).unwrap();
+                            // Look at what we got
+                            //
+                            match alias {
+                                // Check whether the "new" command points to a known command then
+                                // it is an alias, not a new command
+                                //
+                                Command::Macro { name, cmd } => {
+                                    // Do we have an alias to a known command?
+                                    //
+                                    if self.exist(&cmd) {
+                                        Some(Command::Alias { name, cmd })
+                                    } else {
+                                        Some(Command::Macro { name, cmd })
+                                    }
+                                }
+                                // Builtins are fine
+                                //
+                                Command::Builtin { .. } => Some(alias),
+                                // Skip the rest
+                                //
+                                _ => None,
+                            }
+                        })
+                        .collect();
+                    added
+                } else {
+                    vec![]
+                }
             }
-        }
-        _ => vec![],
-    };
+            _ => vec![],
+        };
 
-    // Merge our builtin aliases
-    //
-    list.append(&mut added);
-    let list = list.into_iter().unique().collect::<Vec<Command>>();
+        // Merge our builtin aliases
+        //
+        list.append(&mut added);
 
-    Ok(list)
+        let list = list.into_iter().unique().collect::<Vec<Command>>();
+        debug!("aliases={list:?}");
+        trace!("{} aliases/macros added", list.len());
+
+        self.merge(list)
+    }
 }
-
 /// Define some builtin aliases
 ///
 fn builtin_aliases() -> Vec<Command> {
@@ -146,7 +156,7 @@ fn builtin_aliases() -> Vec<Command> {
     vec![
         // Dices of Doom(tm)
         //
-        Command::New {
+        Command::Macro {
             name: "doom".to_string(),
             cmd: "dice 2D6".to_string(),
         },
@@ -154,7 +164,7 @@ fn builtin_aliases() -> Vec<Command> {
         //
         Command::Alias {
             name: "roll".to_string(),
-            cmd: Cmd::Dice,
+            cmd: "dice".to_string(),
         },
     ]
 }
@@ -200,29 +210,33 @@ mod tests {
     fn test_load_aliases_with_file() {
         let fname: PathBuf = makepath!("testdata", "aliases");
         let al = vec![
-            Command::New {
+            Command::Macro {
                 name: "doom".to_string(),
                 cmd: "dice 2D6".to_string(),
             },
             Command::Alias {
                 name: "roll".to_string(),
-                cmd: Cmd::Dice,
+                cmd: "dice".to_string(),
             },
             Command::Alias {
                 name: "rulez".to_string(),
-                cmd: Cmd::Dice,
+                cmd: "dice".to_string(),
             },
-            Command::New {
+            Command::Macro {
                 name: "move".to_string(),
                 cmd: "dice 3D6 -9".to_string(),
             },
-            Command::New {
+            Command::Macro {
                 name: "mouv".to_string(),
                 cmd: "move +7".to_string(),
             },
+            Command::Alias {
+                name: "quit".to_string(),
+                cmd: "exit".to_string(),
+            },
         ];
 
-        let n = load_aliases(Some(fname));
+        let n = Engine::new().with(Some(fname));
         assert!(n.is_ok());
         let n = n.unwrap();
         assert_eq!(al, n);
@@ -231,17 +245,17 @@ mod tests {
     #[test]
     fn test_load_aliases_with_none() {
         let al = vec![
-            Command::New {
+            Command::Macro {
                 name: "doom".to_string(),
                 cmd: "dice 2D6".to_string(),
             },
             Command::Alias {
                 name: "roll".to_string(),
-                cmd: Cmd::Dice,
+                cmd: "dice".to_string(),
             },
         ];
 
-        let n = load_aliases(None);
+        let n = Engine::new().with(None);
         assert!(n.is_ok());
         let n = n.unwrap();
         assert_eq!(al, n);

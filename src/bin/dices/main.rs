@@ -3,28 +3,22 @@ use std::path::PathBuf;
 use anyhow::{anyhow, Result};
 use clap::Parser;
 use home::home_dir;
-use log::{debug, error, info, trace};
-use rustyline::{
-    config::BellStyle::Visible, error::ReadlineError, CompletionType::List, Config, Editor,
-};
+use log::trace;
+use rustyline::{config::BellStyle::Visible, CompletionType::List, Config, Editor};
 use stderrlog::LogLevelNum::{Debug, Info, Trace};
 
 use crate::cli::Opts;
-use crate::commands::aliases::load_aliases;
-use crate::commands::Command;
 use crate::engine::Engine;
 use crate::version::version;
 
 mod cli;
-mod commands;
+mod compiler;
 mod engine;
 mod version;
 
 const BASE_DIR: &str = ".config";
 const ALIASES_FILE: &str = "aliases";
 const HISTORY_FILE: &str = "history";
-
-const PS1: &str = "Dices> ";
 
 /// Simple macro to generate PathBuf from a series of entries
 ///
@@ -74,7 +68,7 @@ fn main() -> Result<()> {
         .init()
         .unwrap();
 
-    debug!("Load config...");
+    trace!("Load config...");
 
     // Setup readline
     //
@@ -89,7 +83,7 @@ fn main() -> Result<()> {
     // Load history if there is one
     //
     if hist.exists() {
-        debug!("Load history from {:?}...", hist);
+        trace!("Load history from {:?}...", hist);
         repl.load_history(&hist)?;
     }
 
@@ -100,100 +94,19 @@ fn main() -> Result<()> {
         _ => Some(def_alias),
     };
 
-    // Load aliases if there is one.  If no file or nothing new, return the builtin aliases
-    //
-    let aliases = load_aliases(alias)?;
-    debug!("aliases = {:?}", aliases);
-
     // Create a new engine with all builtin commands
     //
+    trace!("Create engine");
     let mut commands = Engine::new();
+    commands.with(alias);
 
-    // And merge in aliases
-    //
-    let commands = commands.merge(aliases);
-    debug!("commands = {:?}", commands);
+    println!("Available commands:\n{}\n", commands.list());
 
-    loop {
-        // Get next line
-        //
-        let line = match repl.readline(PS1) {
-            Ok(line) => line,
-            Err(ReadlineError::Interrupted) => break,
-            Err(e) => {
-                error!("{:?}", e);
-                break;
-            }
-        };
-
-        trace!("{}", line);
-
-        // Save it
-        //
-        repl.add_history_entry(line.as_str());
-
-        let (input, cmd) = match commands.parse(&line) {
-            Ok((input, cmd)) => (input.to_string(), cmd),
-            Err(_) => {
-                println!("unknown command");
-                continue;
-            }
-        };
-
-        debug!("{:?}", cmd);
-
-        // Some actions have to be executed here because they do not involve the "core" dice-related
-        // commands and interact with the interactive shell like `exit` and `list`
-        let res = match cmd {
-            // Shortcut to exit
-            //
-            Command::Exit => break,
-
-            // Shortcut to list
-            //
-            Command::List => {
-                println!("{}", commands.list());
-                continue;
-            }
-            // The hard part is that we need to reenter the parser
-            //
-            Command::New { cmd, .. } => {
-                trace!("new={}", cmd);
-
-                // Call recurse with None to use the currently defined max recursion level (5).
-                //
-                let (input, cmd) = match commands.recurse(&cmd, None) {
-                    Ok((input, cmd)) => (input.to_string(), cmd),
-                    Err(e) => {
-                        println!("Error: {}", e.to_string());
-                        continue;
-                    }
-                };
-                let res = cmd.execute(&input);
-                res
-            }
-            // These can be executed directly
-            //
-            Command::Builtin { cmd, .. } | Command::Alias { cmd, .. } => {
-                // Identify and execute each command
-                // Short one may be inserted here directly
-                // otherwise put them in `commands/mod.rs`
-                //
-                trace!("cmd={:?}", cmd);
-                let res = cmd.execute(&input);
-                dbg!(&res);
-                res
-            }
-            _ => Err(anyhow!("impossible command")),
-        };
-        match res {
-            Ok(res) => {
-                info!("roll = {:?}", res);
-                debug!("{:?}", res);
-            }
-            Err(e) => error!("{}", e.to_string()),
-        }
+    match commands.run(&mut repl) {
+        Ok(_) => match repl.save_history(&hist) {
+            Ok(()) => Ok(()),
+            Err(e) => Err(anyhow!("{}", e.to_string())),
+        },
+        Err(e) => Err(anyhow!(e.to_string())),
     }
-    repl.save_history(&hist)?;
-    Ok(())
 }
