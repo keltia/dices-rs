@@ -8,6 +8,7 @@ use crate::engine::Command;
 
 /// Action is more or less the result of the compilation done by `Compiler`
 ///
+#[derive(Debug, PartialEq)]
 pub enum Action {
     /// List aliases
     Aliases,
@@ -73,11 +74,11 @@ impl Compiler {
 
             // Re-enter the parser until be get to a Builtin
             //
-            Command::Macro { cmd, .. } => Action::Error("no macro".to_string()),
+            Command::Macro { .. } => Action::Error("no macro".to_string()),
 
             // Alias to something that may be a New or Alias
             //
-            Command::Alias { cmd, .. } => Action::Error("no alias".to_string()),
+            Command::Alias { .. } => Action::Error("no alias".to_string()),
 
             // These can be executed directly
             //
@@ -177,5 +178,25 @@ impl Compiler {
         }
         trace!("recurse(input)={input} max={max}");
         self.recurse(&input, Some(max))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use rstest::rstest;
+
+    use crate::engine::Engine;
+
+    use super::*;
+
+    #[rstest]
+    #[case("exit", Action::Exit)]
+    #[case("list", Action::List)]
+    #[case("aliases", Action::Aliases)]
+    #[case("macros", Action::Macros)]
+    fn test_compile(#[case] input: &str, #[case] cmd: Action) {
+        let n = Engine::new();
+        let cc = Compiler::new(&n.cmds);
+        assert_eq!(cmd, cc.compile(input))
     }
 }
