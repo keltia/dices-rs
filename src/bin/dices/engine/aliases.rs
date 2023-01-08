@@ -172,6 +172,7 @@ fn builtin_aliases() -> Vec<Command> {
 #[cfg(test)]
 mod tests {
     use crate::makepath;
+    use std::collections::HashMap;
 
     use super::*;
 
@@ -209,55 +210,91 @@ mod tests {
     #[test]
     fn test_load_aliases_with_file() {
         let fname: PathBuf = makepath!("testdata", "aliases");
-        let al = vec![
-            Command::Macro {
-                name: "doom".to_string(),
-                cmd: "dice 2D6".to_string(),
-            },
-            Command::Alias {
-                name: "roll".to_string(),
-                cmd: "dice".to_string(),
-            },
-            Command::Alias {
-                name: "rulez".to_string(),
-                cmd: "dice".to_string(),
-            },
-            Command::Macro {
-                name: "move".to_string(),
-                cmd: "dice 3D6 -9".to_string(),
-            },
-            Command::Macro {
-                name: "mouv".to_string(),
-                cmd: "move +7".to_string(),
-            },
-            Command::Alias {
-                name: "quit".to_string(),
-                cmd: "exit".to_string(),
-            },
-        ];
+        let al = HashMap::<String, Command>::from([
+            (
+                "doom".to_string(),
+                Command::Macro {
+                    name: "doom".to_string(),
+                    cmd: "dice 2D6".to_string(),
+                },
+            ),
+            (
+                "roll".to_string(),
+                Command::Alias {
+                    name: "roll".to_string(),
+                    cmd: "dice".to_string(),
+                },
+            ),
+            (
+                "rulez".to_string(),
+                Command::Alias {
+                    name: "rulez".to_string(),
+                    cmd: "dice".to_string(),
+                },
+            ),
+            (
+                "move".to_string(),
+                Command::Macro {
+                    name: "move".to_string(),
+                    cmd: "dice 3D6 -9".to_string(),
+                },
+            ),
+            (
+                "mouv".to_string(),
+                Command::Macro {
+                    name: "mouv".to_string(),
+                    cmd: "move +7".to_string(),
+                },
+            ),
+            (
+                "quit".to_string(),
+                Command::Alias {
+                    name: "quit".to_string(),
+                    cmd: "exit".to_string(),
+                },
+            ),
+            ("aliases".to_string(), Command::Aliases),
+            ("exit".to_string(), Command::Exit),
+            ("macros".to_string(), Command::Macros),
+        ]);
 
-        let n = Engine::new().with(Some(fname));
-        assert!(n.is_ok());
-        let n = n.unwrap();
-        assert_eq!(al, n);
+        let mut n = Engine::new();
+        n.with(Some(fname));
+
+        al.into_iter().for_each(|(name, cmd)| {
+            assert!(n.cmds.contains_key(&name));
+            assert_eq!(&cmd, n.cmds.get(&name).unwrap());
+        });
     }
 
     #[test]
     fn test_load_aliases_with_none() {
-        let al = vec![
-            Command::Macro {
-                name: "doom".to_string(),
-                cmd: "dice 2D6".to_string(),
-            },
-            Command::Alias {
-                name: "roll".to_string(),
-                cmd: "dice".to_string(),
-            },
-        ];
+        let al = HashMap::<String, Command>::from([
+            (
+                "roll".to_string(),
+                Command::Alias {
+                    name: "roll".to_string(),
+                    cmd: "dice".to_string(),
+                },
+            ),
+            ("exit".to_string(), Command::Exit),
+            (
+                "doom".to_string(),
+                Command::Macro {
+                    name: "doom".to_string(),
+                    cmd: "dice 2D6".to_string(),
+                },
+            ),
+            ("aliases".to_string(), Command::Aliases),
+            ("macros".to_string(), Command::Macros),
+        ]);
 
-        let n = Engine::new().with(None);
-        assert!(n.is_ok());
-        let n = n.unwrap();
-        assert_eq!(al, n);
+        let mut n = Engine::new();
+        n.with(None);
+
+        al.into_iter().for_each(|(name, cmd)| {
+            assert!(n.cmds.contains_key(&name));
+            assert_eq!(&cmd, n.cmds.get(&name).unwrap());
+        });
     }
 }

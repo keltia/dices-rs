@@ -59,7 +59,7 @@ const PS1: &str = "Dices> ";
 /// Easier to carry around
 ///
 pub struct Engine {
-    cmds: HashMap<String, Command>,
+    pub(crate) cmds: HashMap<String, Command>,
 }
 
 impl Engine {
@@ -251,6 +251,7 @@ mod tests {
     use rstest::rstest;
 
     use super::*;
+    use crate::engine::Command;
 
     #[test]
     fn test_builtin_commands() {
@@ -264,6 +265,8 @@ mod tests {
             ),
             ("exit".to_string(), Command::Exit),
             ("list".to_string(), Command::List),
+            ("aliases".to_string(), Command::Aliases),
+            ("macros".to_string(), Command::Macros),
             (
                 "open".to_string(),
                 Command::Builtin {
@@ -273,9 +276,11 @@ mod tests {
             ),
         ]);
 
-        let e = Engine::new();
-        let b = builtin_commands();
-        assert_eq!(all, b.cmds);
+        let n = Engine::builtin_commands();
+        all.into_iter().for_each(|(name, cmd)| {
+            assert!(n.cmds.contains_key(&name));
+            assert_eq!(&cmd, n.cmds.get(&name).unwrap());
+        });
     }
 
     #[test]
@@ -290,6 +295,8 @@ mod tests {
             ),
             ("exit".to_string(), Command::Exit),
             ("list".to_string(), Command::List),
+            ("aliases".to_string(), Command::Aliases),
+            ("macros".to_string(), Command::Macros),
             (
                 "open".to_string(),
                 Command::Builtin {
@@ -299,8 +306,11 @@ mod tests {
             ),
         ]);
 
-        let b = Engine::new();
-        assert_eq!(all, b.cmds);
+        let n = Engine::new();
+        all.into_iter().for_each(|(name, cmd)| {
+            assert!(n.cmds.contains_key(&name));
+            assert_eq!(&cmd, n.cmds.get(&name).unwrap());
+        });
     }
 
     #[test]
@@ -322,6 +332,8 @@ mod tests {
             ),
             ("exit".to_string(), Command::Exit),
             ("list".to_string(), Command::List),
+            ("aliases".to_string(), Command::Aliases),
+            ("macros".to_string(), Command::Macros),
             (
                 "open".to_string(),
                 Command::Builtin {
