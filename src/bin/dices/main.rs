@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use anyhow::{anyhow, Result};
 use clap::Parser;
 use home::home_dir;
-use log::{debug, trace};
+use log::trace;
 use rustyline::{config::BellStyle::Visible, CompletionType::List, Config, Editor};
 use stderrlog::LogLevelNum::{Debug, Info, Trace};
 
@@ -12,6 +12,7 @@ use crate::engine::Engine;
 use crate::version::version;
 
 mod cli;
+mod compiler;
 mod engine;
 mod version;
 
