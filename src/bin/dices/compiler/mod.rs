@@ -74,11 +74,11 @@ impl Compiler {
 
             // Re-enter the parser until be get to a Builtin
             //
-            Command::Macro { cmd, .. } => Action::Error("no macro".to_string()),
+            Command::Macro { .. } => Action::Error("no macro".to_string()),
 
             // Alias to something that may be a New or Alias
             //
-            Command::Alias { cmd, .. } => Action::Error("no alias".to_string()),
+            Command::Alias { .. } => Action::Error("no alias".to_string()),
 
             // These can be executed directly
             //
