@@ -10,3 +10,4 @@ move = "dice 3D6 -9"
 mouv = "move +7"
 # alias to another command
 quit = exit
+llist = list

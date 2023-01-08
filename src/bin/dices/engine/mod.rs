@@ -6,11 +6,12 @@
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 
-use anyhow::{anyhow, bail, Result};
+use anyhow::{anyhow, Result};
 use itertools::Itertools;
 use log::{debug, error, info, trace};
-use nom::{character::complete::alphanumeric1, IResult};
 use rustyline::{error::ReadlineError, Editor};
+
+use crate::compiler::{Action, Compiler};
 
 use dices_rs::dice::result::Res;
 
@@ -36,6 +37,10 @@ pub enum Command {
     Exit,
     /// List all commands
     List,
+    /// List all aliases
+    Aliases,
+    /// List all macros
+    Macros,
 }
 
 impl Command {
@@ -53,11 +58,11 @@ const PS1: &str = "Dices> ";
 
 /// Easier to carry around
 ///
-pub struct Engine(HashMap<String, Command>);
+pub struct Engine {
+    cmds: HashMap<String, Command>,
+}
 
 impl Engine {
-    const MAX_RECUR: usize = 5;
-
     /// Create a new instance
     ///
     pub fn new() -> Self {
@@ -67,6 +72,9 @@ impl Engine {
     /// Main loop here, refactored from `main()`.
     ///
     pub fn run(&mut self, repl: &mut Editor<()>) -> Result<()> {
+        trace!("create compiler with {:?}", self.cmds);
+        let cc = Compiler::new(&self.cmds);
+
         loop {
             // Get next line
             //
@@ -85,86 +93,42 @@ impl Engine {
             //
             repl.add_history_entry(line.as_str());
 
-            // First analysis
-            //
-            let (input, cmd) = match self.parse(&line) {
-                Ok((input, cmd)) => (input.to_string(), cmd),
-                Err(_) => {
-                    println!("unknown command");
-                    continue;
-                }
-            };
-
-            trace!("cmd={:?}", cmd);
-
             // Some actions have to be executed here because they do not involve the "core" dice-related
             // commands and interact with the interactive shell like `exit` and `list`
             //
-            let res = match cmd {
+            let action = cc.compile(&line);
+
+            let res = match action {
                 // Shortcut to exit
                 //
-                Command::Exit => break,
+                Action::Exit => break,
 
                 // Shortcut to list
                 //
-                Command::List => {
+                Action::List => {
                     println!("{}", self.list());
                     continue;
                 }
-                // Re-enter the parser until be get to a Builtin
-                //
-                Command::Macro { cmd, .. } => {
-                    trace!("new={}", cmd);
 
-                    // Call recurse with None to use the currently defined max recursion level (5).
-                    //
-                    let (input, cmd) = match self.recurse(&cmd, None) {
-                        Ok((input, cmd)) => (input.to_string(), cmd),
-                        Err(e) => {
-                            println!("Error: {}", e);
-                            continue;
-                        }
-                    };
-                    let res = cmd.execute(&input);
-                    dbg!(&res);
-                    res
+                Action::Aliases => {
+                    println!("{:?}", self.aliases());
+                    continue;
                 }
-                // Alias to something that may be a New or Alias
-                //
-                Command::Alias { cmd, .. } => {
-                    trace!("alias = {cmd} {input}");
-                    if self.exist(&cmd) {
-                        // We have an alias to another command
-                        //
-                    }
-                    let cmd = cmd.to_string() + input.as_str();
 
-                    // Call recurse with None to use the currently defined max recursion level (5).
-                    //
-                    let (input, cmd) = match self.recurse(&cmd, None) {
-                        Ok((input, cmd)) => (input.to_string(), cmd),
-                        Err(e) => {
-                            println!("Error: {}", e);
-                            continue;
-                        }
-                    };
-                    let res = cmd.execute(&input);
-                    dbg!(&res);
-                    res
+                Action::Macros => {
+                    println!("{:?}", self.macros());
+                    continue;
                 }
-                // These can be executed directly
+                // Something we can call `execute()` on.
                 //
-                Command::Builtin { cmd, .. } => {
-                    // Identify and execute each command
-                    // Short one may be inserted here directly
-                    // otherwise put them in `engine/mod.rs`
-                    //
-                    trace!("cmd={:?}", cmd);
+                Action::Execute(cmd, input) => {
+                    trace!("exec={:?}", cmd);
+
                     let res = cmd.execute(&input);
                     dbg!(&res);
                     res
                 }
-                _ => Err(anyhow!("impossible command")),
+                Action::Error(s) => Err(anyhow!("impossible action: {}", s)),
             };
             match res {
                 Ok(res) => {
@@ -176,93 +140,17 @@ impl Engine {
         }
         Ok(())
     }
-    /// Parse then validate
-    ///
-    pub fn parse(&self, input: &str) -> Result<(String, Command)> {
-        // Private fn
-        //
-        fn parse_keyword(input: &str) -> IResult<&str, &str> {
-            alphanumeric1(input)
-        }
-
-        debug!("all={:?}", self.0);
-
-        // Get command name
-        //
-        let (input, name) = match parse_keyword(input) {
-            Ok((input, name)) => (input.to_owned(), name.to_owned()),
-            Err(_) => return Err(anyhow!("invalid command")),
-        };
-
-        trace!("name={name} with input={input}");
-
-        // Validate that a given input does map to a `Command`
-        //
-        match self.0.get(&name) {
-            Some(cmd) => {
-                trace!("parse found {:?}", cmd);
-                Ok((input, cmd.to_owned()))
-            }
-            None => return Err(anyhow!("unknown command")),
-        }
-    }
-
-    /// Try to reduce/compile Command::New into a Builtin or Alias
-    ///
-    /// This is a tail recursive function, might be turned into an iterative one at some point
-    /// Not sure it is worth it.
-    ///
-    pub fn recurse(&self, input: &str, max: Option<usize>) -> Result<(String, Command)> {
-        trace!("recurse({max:?})={:?}", input);
-
-        // Set default recursion max
-        //
-        let mut max = max.unwrap_or(Engine::MAX_RECUR);
-
-        let (input, command) = self.parse(input)?;
-        let input = match command {
-            // The end, we are at the Builtin level
-            //
-            Command::Builtin { .. } => {
-                trace!("recurse=builtin, end");
-                return Ok((input, command));
-            }
-            // This is an alias
-            //
-            Command::Alias { cmd, .. } => {
-                trace!("recurse=alias({cmd})");
-                max -= 1;
-                cmd + input.as_str()
-            }
-            // XXX Need to recurse now but we must not lose any argument so append old input
-            //
-            Command::Macro { name, cmd } => {
-                trace!("recurse=new({})", name);
-                max -= 1;
-                cmd + input.as_str()
-            }
-            Command::List | Command::Exit => return Ok((input, command)),
-            _ => bail!("impossible in recurse"),
-        };
-        // Error out if too deep recursion
-        //
-        if max == 0 {
-            return Err(anyhow!("max recursion level reached for {}", input));
-        }
-        trace!("recurse(input)={input} max={max}");
-        self.recurse(&input, Some(max))
-    }
 
     /// Check whether a given command exist
     ///
     pub fn exist(&self, name: &str) -> bool {
-        self.0.contains_key(name)
+        self.cmds.contains_key(name)
     }
 
     /// Call insert() on the inner hash
     ///
     pub fn insert(&mut self, k: String, v: Command) -> &mut Self {
-        self.0.insert(k, v);
+        self.cmds.insert(k, v);
         self
     }
 
@@ -283,7 +171,7 @@ impl Engine {
     /// Lists all available commands
     ///
     pub fn list(&self) -> String {
-        self.0
+        self.cmds
             .iter()
             .map(|(n, c)| {
                 let tag = match c {
@@ -300,7 +188,7 @@ impl Engine {
     /// Returns all aliases
     ///
     pub fn aliases(&self) -> Vec<String> {
-        self.0
+        self.cmds
             .iter()
             .filter_map(|(_name, cmd, ..)| match cmd {
                 Command::Alias { name, .. } => Some(name.to_owned()),
@@ -312,7 +200,7 @@ impl Engine {
     /// Returns all macros
     ///
     pub fn macros(&self) -> Vec<String> {
-        self.0
+        self.cmds
             .iter()
             .filter_map(|(_name, cmd)| match cmd {
                 Command::Macro { name, .. } => Some(name.to_owned()),
@@ -323,7 +211,7 @@ impl Engine {
 
     /// Primary aka builtin commands
     ///
-    const CMDS: [&str; 4] = ["dice", "exit", "list", "open"];
+    const CMDS: [&'static str; 6] = ["aliases", "dice", "exit", "list", "macros", "open"];
 
     /// Build a list of `Command` from the builtin commands
     ///
@@ -332,8 +220,10 @@ impl Engine {
         let all = Self::CMDS.iter().map(|&n| match n {
             // These are caught before
             //
+            "aliases" => (n.to_string(), Command::Aliases),
             "exit" => (n.to_string(), Command::Exit),
             "list" => (n.to_string(), Command::List),
+            "macros" => (n.to_string(), Command::Macros),
             // General case
             //
             _ => (
@@ -344,13 +234,15 @@ impl Engine {
                 },
             ),
         });
-        Engine(HashMap::<String, Command>::from_iter(all))
+        Engine {
+            cmds: HashMap::<String, Command>::from_iter(all),
+        }
     }
 }
 
 impl Debug for Engine {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self.0)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -383,7 +275,7 @@ mod tests {
 
         let e = Engine::new();
         let b = builtin_commands();
-        assert_eq!(all, b.0);
+        assert_eq!(all, b.cmds);
     }
 
     #[test]
@@ -408,7 +300,7 @@ mod tests {
         ]);
 
         let b = Engine::new();
-        assert_eq!(all, b.0);
+        assert_eq!(all, b.cmds);
     }
 
     #[test]
@@ -448,7 +340,7 @@ mod tests {
 
         e.merge(doom);
 
-        assert_eq!(all, e.0);
+        assert_eq!(all, e.cmds);
     }
 
     #[rstest]
