@@ -1,5 +1,8 @@
 //! Module to load aliases from `$HOME/.config/dices/aliases`.
 //!
+//! You can define macros or aliases in there, they will be resolved at run-time
+//! by the compiler.
+//!
 //! Public API:
 //!
 //! ```no_run
@@ -210,7 +213,7 @@ mod tests {
     #[test]
     fn test_load_aliases_with_file() {
         let fname: PathBuf = makepath!("testdata", "aliases");
-        let al = HashMap::<String, Command>::from([
+        let all = HashMap::<String, Command>::from([
             (
                 "doom".to_string(),
                 Command::Macro {
@@ -261,7 +264,7 @@ mod tests {
         let mut n = Engine::new();
         n.with(Some(fname));
 
-        al.into_iter().for_each(|(name, cmd)| {
+        all.into_iter().for_each(|(name, cmd)| {
             assert!(n.cmds.contains_key(&name));
             assert_eq!(&cmd, n.cmds.get(&name).unwrap());
         });
@@ -269,7 +272,7 @@ mod tests {
 
     #[test]
     fn test_load_aliases_with_none() {
-        let al = HashMap::<String, Command>::from([
+        let all = HashMap::<String, Command>::from([
             (
                 "roll".to_string(),
                 Command::Alias {
@@ -292,7 +295,7 @@ mod tests {
         let mut n = Engine::new();
         n.with(None);
 
-        al.into_iter().for_each(|(name, cmd)| {
+        all.into_iter().for_each(|(name, cmd)| {
             assert!(n.cmds.contains_key(&name));
             assert_eq!(&cmd, n.cmds.get(&name).unwrap());
         });
