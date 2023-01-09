@@ -49,17 +49,34 @@ Options:
   -h, --help                     Print help information
 ```
 
+Example:
+
+```text
+$ cargo run --   -A ./testdata/aliases
+dices/0.9.4 by Ollivier Robert <roberto@keltia.net>
+Small CLI utility to roll dices.
+
+Available commands:
+special macros = Macros
+builtin dice = Builtin { name: "dice", cmd: Dice }
+macro   move = Macro { name: "move", cmd: "dice 3D6 -9" }
+alias   roll = Alias { name: "roll", cmd: "dice" }
+alias   rulez = Alias { name: "rulez", cmd: "dice" }
+macro   mouv = Macro { name: "mouv", cmd: "move +7" }
+macro   doom = Macro { name: "doom", cmd: "dice 2D6" }
+builtin open = Builtin { name: "open", cmd: Open }
+special aliases = Aliases
+alias   quit = Alias { name: "quit", cmd: "exit" }
+special exit = Exit
+special list = List
+
+Dices>
+```
+
 If you specify the `-v` flag several times you increase the amount of debugging information displayed. See below for
 the format of the `aliases` file.
 
 The main commands the `dices` CLI support are:
-
-```text
-dices/0.9.4 by Ollivier Robert <roberto@keltia.net>
-Small CLI utility to roll dices.
-
-Dices>
-```
 
 - `dice`
 
@@ -94,8 +111,7 @@ List all macros.
 ## Configuring
 
 The `dices` utility supports configuring new command or aliases through the `aliases` file, usually located
-on `$HOME/.config/dices`
-on UNIX systems. Windows is also supported and use the same location for now.
+on `$HOME/.config/dices` on UNIX systems. Windows is also supported and use the same location for now.
 
 ```text
 # define a new command
