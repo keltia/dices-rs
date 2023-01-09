@@ -362,6 +362,13 @@ mod tests {
         assert_eq!(value, e.exist(input));
     }
 
+    #[test]
+    fn test_aliases() {
+        let e = Engine::builtin_commands();
+        let v_str = e.aliases();
+        assert!(v_str.is_empty());
+    }
+
     /// TODO Finish the test
     ///
     #[test]
