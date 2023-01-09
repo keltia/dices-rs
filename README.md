@@ -55,7 +55,7 @@ the format of the `aliases` file.
 The main commands the `dices` CLI support are:
 
 ```text
-dices/0.9.3 by Ollivier Robert <roberto@keltia.net>
+dices/0.9.4 by Ollivier Robert <roberto@keltia.net>
 Small CLI utility to roll dices.
 
 Dices>
@@ -124,6 +124,8 @@ Some aliases are pre-defined at start to be useful:
 
 - Document, document and more documentation
 - Tests and more tests
+- Fold `aliases` and `macros` into a specialized `list` through a special closure
+- ~~add CLI tests.~~
 - ~~Allow alias to existing commands or other aliases~~
 
 ## Contributing
