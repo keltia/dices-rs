@@ -1,7 +1,14 @@
+//! This is the compiler part of the program
+//!
+//! It does all the parsing, checking that the command we found does exist, resolve macros
+//! and aliases and output our "compiled" code (aka `Action`) and the engine is supposed to
+//! deal with the output.
+//!
+
 use std::collections::HashMap;
 
 use anyhow::{anyhow, bail, Result};
-use log::{debug, trace};
+use log::trace;
 use nom::{character::complete::alphanumeric1, IResult};
 
 use crate::engine::Command;
@@ -25,18 +32,22 @@ pub enum Action {
 }
 
 #[derive(Debug)]
+/// Our compiler struct
+///
 pub struct Compiler {
+    /// List of all available commands
     cmds: HashMap<String, Command>,
 }
 
 impl Compiler {
-    /// Max depth we allow for recusion
+    /// Max depth we allow for recursion
     ///
     pub const MAX_RECUR: usize = 5;
 
-    /// Instanciate a new compiler with allowed commands
+    /// Instantiate a new compiler with allowed commands
     ///
     pub fn new(cmds: &HashMap<String, Command>) -> Self {
+        trace!("create compiler with({:?})", cmds);
         Self { cmds: cmds.clone() }
     }
 
@@ -49,35 +60,21 @@ impl Compiler {
         // Go directly into `recurse()`
         //
         let (input, cmd) = match self.recurse(input, None) {
-            Ok((input, cmd)) => (input.to_string(), cmd),
+            Ok((input, cmd)) => (input, cmd),
             Err(_) => return Action::Error("unknown command".to_string()),
         };
 
         trace!("cmd={:?}", cmd);
 
         match cmd {
-            // Shortcut to exit
-            //
             Command::Exit => Action::Exit,
-
-            // Shortcut to list
-            //
             Command::List => Action::List,
-
-            // Shortcut to exit
-            //
             Command::Aliases => Action::Aliases,
-
-            // Shortcut to list
-            //
             Command::Macros => Action::Macros,
 
-            // Re-enter the parser until be get to a Builtin
+            // At this point these are not possible
             //
             Command::Macro { .. } => Action::Error("no macro".to_string()),
-
-            // Alias to something that may be a New or Alias
-            //
             Command::Alias { .. } => Action::Error("no alias".to_string()),
 
             // These can be executed directly
@@ -88,23 +85,21 @@ impl Compiler {
                 // otherwise put them in `engine/mod.rs`
                 //
                 trace!("builtin={:?}", cmd);
-                Action::Execute(cmd.clone(), input.to_string())
+                Action::Execute(cmd, input)
             }
-            _ => return Action::Error("impossible command".to_string()),
+            _ => Action::Error("impossible command".to_string()),
         }
     }
 
     /// Parse then validate
     ///
-    pub fn parse(&self, input: &str) -> Result<(String, Command)> {
+    fn parse(&self, input: &str) -> Result<(String, Command)> {
         trace!("in compiler::parse({})", input);
         // Private fn
         //
         fn parse_keyword(input: &str) -> IResult<&str, &str> {
             alphanumeric1(input)
         }
-
-        debug!("all={:?}", self.cmds);
 
         // Get command name
         //
@@ -126,12 +121,12 @@ impl Compiler {
         }
     }
 
-    /// Try to reduce/compile Command::New into a Builtin or Alias
+    /// Try to reduce/compile `Macro` & `Alias` into a `Builtin` or special command
     ///
     /// This is a tail recursive function, might be turned into an iterative one at some point
     /// Not sure it is worth it.
     ///
-    pub fn recurse(&self, input: &str, max: Option<usize>) -> Result<(String, Command)> {
+    fn recurse(&self, input: &str, max: Option<usize>) -> Result<(String, Command)> {
         trace!("in compiler::recurse({max:?})={:?}", input);
 
         // Set default recursion max
@@ -158,14 +153,12 @@ impl Compiler {
                 trace!("recurse=macro({})", name);
                 cmd + input.as_str()
             }
-
             // These are builtin & special commands
             //
             Command::List | Command::Exit | Command::Aliases | Command::Macros => {
                 trace!("list/exit, end");
                 return Ok((input, command));
             }
-
             // Everything else is  an error here
             //
             _ => bail!("impossible in recurse"),

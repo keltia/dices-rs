@@ -72,9 +72,9 @@ impl Engine {
     /// Main loop here, refactored from `main()`.
     ///
     pub fn run(&mut self, repl: &mut Editor<()>) -> Result<()> {
-        trace!("create compiler with {:?}", self.cmds);
         let cc = Compiler::new(&self.cmds);
 
+        trace!("Start our input loop");
         loop {
             // Get next line
             //
@@ -98,25 +98,21 @@ impl Engine {
             //
             let action = cc.compile(&line);
 
+            // Now do something with this output of the compiler
+            //
+            trace!("got ({action:?} as output");
             let res = match action {
-                // Shortcut to exit
-                //
                 Action::Exit => break,
-
-                // Shortcut to list
-                //
                 Action::List => {
                     println!("{}", self.list());
                     continue;
                 }
-
                 Action::Aliases => {
-                    println!("{:?}", self.aliases());
+                    println!("{}", self.aliases());
                     continue;
                 }
-
                 Action::Macros => {
-                    println!("{:?}", self.macros());
+                    println!("{}", self.macros());
                     continue;
                 }
                 // Something we can call `execute()` on.
@@ -187,26 +183,28 @@ impl Engine {
 
     /// Returns all aliases
     ///
-    pub fn aliases(&self) -> Vec<String> {
+    pub fn aliases(&self) -> String {
         self.cmds
             .iter()
             .filter_map(|(_name, cmd, ..)| match cmd {
-                Command::Alias { name, .. } => Some(name.to_owned()),
+                Command::Alias { name, cmd } => Some((name.to_owned(), cmd)),
                 _ => None,
             })
-            .collect()
+            .map(|(n, c)| format!("alias \t{n} = {c:.}"))
+            .join("\n")
     }
 
     /// Returns all macros
     ///
-    pub fn macros(&self) -> Vec<String> {
+    pub fn macros(&self) -> String {
         self.cmds
             .iter()
             .filter_map(|(_name, cmd)| match cmd {
-                Command::Macro { name, .. } => Some(name.to_owned()),
+                Command::Macro { name, cmd } => Some((name.to_owned(), cmd)),
                 _ => None,
             })
-            .collect()
+            .map(|(n, c)| format!("macro \t{n} = {c:.}"))
+            .join("\n")
     }
 
     /// Primary aka builtin commands
@@ -242,7 +240,7 @@ impl Engine {
 
 impl Debug for Engine {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "Engine({:?})", self.cmds)
     }
 }
 
@@ -362,6 +360,13 @@ mod tests {
     fn test_engine_exist(#[case] input: &str, #[case] value: bool) {
         let e = Engine::builtin_commands();
         assert_eq!(value, e.exist(input));
+    }
+
+    #[test]
+    fn test_aliases() {
+        let e = Engine::builtin_commands();
+        let v_str = e.aliases();
+        assert!(v_str.is_empty());
     }
 
     /// TODO Finish the test

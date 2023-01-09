@@ -1,6 +1,6 @@
 [package]
 name = "dices-rs"
-version = "0.9.4"
+version = "0.9.5"
 authors = ["Ollivier Robert <roberto@keltia.net>"]
 description = "Small CLI utility to roll dices."
 edition = "2021"
@@ -36,5 +36,6 @@ rustyline = { version = "10.0.0", features = ["case_insensitive_history_search"]
 stderrlog = "0.5.4"
 
 [dev-dependencies]
+assert_cmd = { version = "2.0.7", features = ["color", "color-auto"] }
 criterion = "0.4.0"
 rstest = "0.16.0"
