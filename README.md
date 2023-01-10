@@ -141,6 +141,7 @@ Some aliases are pre-defined at start to be useful:
 - Document, document and more documentation
 - Tests and more tests
 - Fold `aliases` and `macros` into a specialized `list` through a special closure
+- Specifying the commands as a yaml file at compile time with `include_str!`
 - ~~add CLI tests.~~
 - ~~Allow alias to existing commands or other aliases~~
 

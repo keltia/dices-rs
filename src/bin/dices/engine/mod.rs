@@ -10,10 +10,11 @@ use anyhow::{anyhow, Result};
 use itertools::Itertools;
 use log::{debug, error, info, trace};
 use rustyline::{error::ReadlineError, Editor};
-
-use crate::compiler::{Action, Compiler};
+use serde::{Deserialize, Serialize};
 
 use dices_rs::dice::result::Res;
+
+use crate::compiler::{Action, Compiler};
 
 use self::core::Cmd;
 
@@ -23,7 +24,7 @@ pub mod core;
 
 /// This describe all possibilities for commands and aliases
 ///
-#[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
 pub enum Command {
     /// New command:  define a specific command in a string
     Macro { name: String, cmd: String },
@@ -207,34 +208,14 @@ impl Engine {
             .join("\n")
     }
 
-    /// Primary aka builtin commands
-    ///
-    const CMDS: [&'static str; 6] = ["aliases", "dice", "exit", "list", "macros", "open"];
-
-    /// Build a list of `Command` from the builtin commands
+    /// Build a list of `Command` from the builtin commands using a YAML file representing
+    /// the list of commands and their type
     ///
     fn builtin_commands() -> Engine {
-        debug!("builtin_commands");
-        let all = Self::CMDS.iter().map(|&n| match n {
-            // These are caught before
-            //
-            "aliases" => (n.to_string(), Command::Aliases),
-            "exit" => (n.to_string(), Command::Exit),
-            "list" => (n.to_string(), Command::List),
-            "macros" => (n.to_string(), Command::Macros),
-            // General case
-            //
-            _ => (
-                n.to_string(),
-                Command::Builtin {
-                    name: n.to_string(),
-                    cmd: Cmd::from(n),
-                },
-            ),
-        });
-        Engine {
-            cmds: HashMap::<String, Command>::from_iter(all),
-        }
+        trace!("builtin_commands(commands.yaml)");
+        let all: HashMap<String, Command> =
+            serde_yaml::from_str(include_str!("commands.yaml")).unwrap();
+        Engine { cmds: all }
     }
 }
 
@@ -248,8 +229,9 @@ impl Debug for Engine {
 mod tests {
     use rstest::rstest;
 
-    use super::*;
     use crate::engine::Command;
+
+    use super::*;
 
     #[test]
     fn test_builtin_commands() {
@@ -304,6 +286,7 @@ mod tests {
             ),
         ]);
 
+        println!("{}", serde_yaml::to_string(&all).unwrap());
         let n = Engine::new();
         all.into_iter().for_each(|(name, cmd)| {
             assert!(n.cmds.contains_key(&name));

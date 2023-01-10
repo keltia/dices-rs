@@ -33,6 +33,8 @@ log = "0.4.17"
 nom = "7.1.2"
 rand = "0.8.4"
 rustyline = { version = "10.0.0", features = ["case_insensitive_history_search"] }
+serde = { version = "1.0.152", features = ["derive"] }
+serde_yaml = "0.9.16"
 stderrlog = "0.5.4"
 
 [dev-dependencies]
