@@ -286,7 +286,6 @@ mod tests {
             ),
         ]);
 
-        println!("{}", serde_yaml::to_string(&all).unwrap());
         let n = Engine::new();
         all.into_iter().for_each(|(name, cmd)| {
             assert!(n.cmds.contains_key(&name));
