@@ -191,7 +191,7 @@ impl Engine {
                 Command::Alias { name, cmd } => Some((name.to_owned(), cmd)),
                 _ => None,
             })
-            .map(|(n, c)| format!("alias \t{n} = {c:.}"))
+            .map(|(n, c)| format!("alias \t{n} = {c}"))
             .join("\n")
     }
 
@@ -204,7 +204,7 @@ impl Engine {
                 Command::Macro { name, cmd } => Some((name.to_owned(), cmd)),
                 _ => None,
             })
-            .map(|(n, c)| format!("macro \t{n} = {c:.}"))
+            .map(|(n, c)| format!("macro \t{n} = {c}"))
             .join("\n")
     }
 
