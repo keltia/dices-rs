@@ -128,10 +128,7 @@ impl Engine {
                 Action::Error(s) => Err(anyhow!("impossible action: {}", s)),
             };
             match res {
-                Ok(res) => {
-                    info!("roll = {:?}", res);
-                    debug!("{:?}", res);
-                }
+                Ok(res) => info!("roll = {:?}", res),
                 Err(e) => error!("{}", e.to_string()),
             }
         }
@@ -214,7 +211,7 @@ impl Engine {
     fn builtin_commands() -> Engine {
         trace!("builtin_commands(commands.yaml)");
         let all: HashMap<String, Command> =
-            serde_yaml::from_str(include_str!("commands.yaml")).unwrap();
+            serde_yaml::from_str(include_str!("../commands.yaml")).unwrap();
         Engine { cmds: all }
     }
 }
