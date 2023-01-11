@@ -1,0 +1,13 @@
+aliases: Aliases
+list: List
+exit: Exit
+dice: !Builtin
+  name: dice
+  cmd: Dice
+macros: Macros
+open: !Builtin
+  name: open
+  cmd: Open
+doom: !Macro
+  name: doom
+  cmd: dice 2D6

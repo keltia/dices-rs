@@ -232,6 +232,8 @@ mod tests {
 
     #[test]
     fn test_builtin_commands() {
+        // Not using `include_str!` here because it would mean testing if A == A
+        //
         let all = HashMap::<String, Command>::from([
             (
                 "dice".to_string(),
@@ -262,26 +264,8 @@ mod tests {
 
     #[test]
     fn test_engine_new() {
-        let all = HashMap::<String, Command>::from([
-            (
-                "dice".to_string(),
-                Command::Builtin {
-                    name: "dice".to_string(),
-                    cmd: Cmd::Dice,
-                },
-            ),
-            ("exit".to_string(), Command::Exit),
-            ("list".to_string(), Command::List),
-            ("aliases".to_string(), Command::Aliases),
-            ("macros".to_string(), Command::Macros),
-            (
-                "open".to_string(),
-                Command::Builtin {
-                    name: "open".to_string(),
-                    cmd: Cmd::Open,
-                },
-            ),
-        ]);
+        let all: HashMap<String, Command> =
+            serde_yaml::from_str(include_str!("../../../../testdata/builtins.yaml")).unwrap();
 
         let n = Engine::new();
         all.into_iter().for_each(|(name, cmd)| {
@@ -292,44 +276,22 @@ mod tests {
 
     #[test]
     fn test_engine_merge() {
-        let mut e = Engine::new();
+        let mut n = Engine::new();
 
         let doom = vec![Command::Macro {
             name: "doom".to_string(),
-            cmd: "2D6".to_string(),
+            cmd: "dice 2D6".to_string(),
         }];
 
-        let all = HashMap::<String, Command>::from([
-            (
-                "dice".to_string(),
-                Command::Builtin {
-                    name: "dice".to_string(),
-                    cmd: Cmd::Dice,
-                },
-            ),
-            ("exit".to_string(), Command::Exit),
-            ("list".to_string(), Command::List),
-            ("aliases".to_string(), Command::Aliases),
-            ("macros".to_string(), Command::Macros),
-            (
-                "open".to_string(),
-                Command::Builtin {
-                    name: "open".to_string(),
-                    cmd: Cmd::Open,
-                },
-            ),
-            (
-                "doom".to_string(),
-                Command::Macro {
-                    name: "doom".to_string(),
-                    cmd: "2D6".to_string(),
-                },
-            ),
-        ]);
+        let all: HashMap<String, Command> =
+            serde_yaml::from_str(include_str!("../../../../testdata/merged.yaml")).unwrap();
 
-        e.merge(doom);
+        n.merge(doom);
 
-        assert_eq!(all, e.cmds);
+        all.into_iter().for_each(|(name, cmd)| {
+            assert!(n.cmds.contains_key(&name));
+            assert_eq!(&cmd, n.cmds.get(&name).unwrap());
+        });
     }
 
     #[rstest]
