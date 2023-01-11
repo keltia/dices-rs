@@ -8,7 +8,7 @@ use std::fmt::{Debug, Formatter};
 
 use anyhow::{anyhow, Result};
 use itertools::Itertools;
-use log::{debug, error, info, trace};
+use log::{error, info, trace};
 use rustyline::{error::ReadlineError, Editor};
 use serde::{Deserialize, Serialize};
 
