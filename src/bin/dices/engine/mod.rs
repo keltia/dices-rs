@@ -309,13 +309,4 @@ mod tests {
         let v_str = e.aliases();
         assert!(v_str.is_empty());
     }
-
-    /// TODO Finish the test
-    ///
-    #[test]
-    fn test_commands_list() {
-        let e = Engine::builtin_commands();
-        let _str = r##""##;
-        dbg!(e.list());
-    }
 }
