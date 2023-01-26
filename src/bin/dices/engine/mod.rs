@@ -150,12 +150,12 @@ impl Engine {
 
     /// Merge a list of commands into the main engine.
     ///
-    pub fn merge(&mut self, aliases: Vec<Command>) -> &mut Self {
+    pub fn merge(mut self, aliases: Vec<Command>) -> Self {
         // And merge in aliases
         //
         aliases.iter().for_each(|a| match a {
             Command::Macro { ref name, .. } | Command::Alias { ref name, .. } => {
-                self.insert(name.to_owned(), a.to_owned());
+                self.cmds.insert(name.to_owned(), a.to_owned());
             }
             _ => (),
         });
@@ -276,7 +276,7 @@ mod tests {
 
     #[test]
     fn test_engine_merge() {
-        let mut n = Engine::new();
+        let n = Engine::new();
 
         let doom = vec![Command::Macro {
             name: "doom".to_string(),
@@ -286,7 +286,7 @@ mod tests {
         let all: HashMap<String, Command> =
             serde_yaml::from_str(include_str!("../../../../testdata/merged.yaml")).unwrap();
 
-        n.merge(doom);
+        let n = n.merge(doom);
 
         all.into_iter().for_each(|(name, cmd)| {
             assert!(n.cmds.contains_key(&name));

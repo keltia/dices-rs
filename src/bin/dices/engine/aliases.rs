@@ -89,7 +89,7 @@ fn parse_string(input: &str) -> IResult<&str, &str> {
 impl Engine {
     /// Load aliases as a list of `Command`.
     ///
-    pub fn with(&mut self, fname: Option<PathBuf>) -> &mut Self {
+    pub fn with(self, fname: Option<PathBuf>) -> Self {
         trace!("with");
 
         // Always load builtins
@@ -174,8 +174,9 @@ fn builtin_aliases() -> Vec<Command> {
 
 #[cfg(test)]
 mod tests {
-    use crate::makepath;
     use std::collections::HashMap;
+
+    use crate::makepath;
 
     use super::*;
 
@@ -261,8 +262,7 @@ mod tests {
             ("macros".to_string(), Command::Macros),
         ]);
 
-        let mut n = Engine::new();
-        n.with(Some(fname));
+        let n = Engine::new().with(Some(fname));
 
         all.into_iter().for_each(|(name, cmd)| {
             assert!(n.cmds.contains_key(&name));
@@ -292,8 +292,7 @@ mod tests {
             ("macros".to_string(), Command::Macros),
         ]);
 
-        let mut n = Engine::new();
-        n.with(None);
+        let n = Engine::new().with(None);
 
         all.into_iter().for_each(|(name, cmd)| {
             assert!(n.cmds.contains_key(&name));

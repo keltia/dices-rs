@@ -97,9 +97,8 @@ fn main() -> Result<()> {
 
     // Create a new engine with all builtin commands
     //
-    trace!("Create engine");
-    let mut commands = Engine::new();
-    commands.with(alias);
+    trace!("Create engine...");
+    let mut commands = Engine::new().with(alias);
 
     println!("Available commands:\n{}\n", commands.list());
 
