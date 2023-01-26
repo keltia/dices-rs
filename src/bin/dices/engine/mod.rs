@@ -141,13 +141,6 @@ impl Engine {
         self.cmds.contains_key(name)
     }
 
-    /// Call insert() on the inner hash
-    ///
-    pub fn insert(&mut self, k: String, v: Command) -> &mut Self {
-        self.cmds.insert(k, v);
-        self
-    }
-
     /// Merge a list of commands into the main engine.
     ///
     pub fn merge(mut self, aliases: Vec<Command>) -> Self {

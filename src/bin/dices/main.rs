@@ -90,6 +90,7 @@ fn main() -> Result<()> {
 
     // Check whether we supplied an alias file on CLI, if not just load out default one
     //
+    trace!("Check for aliases...");
     let alias = match opts.alias_file {
         Some(fname) => Some(PathBuf::from(fname)),
         _ => Some(def_alias),
@@ -104,8 +105,11 @@ fn main() -> Result<()> {
 
     match commands.run(&mut repl) {
         Ok(_) => match repl.save_history(&hist) {
-            Ok(()) => Ok(()),
-            Err(e) => Err(anyhow!("{}", e.to_string())),
+            Ok(()) => {
+                trace!("Saved history...");
+                Ok(())
+            }
+            Err(e) => Err(anyhow!("Error: can't save history: {}", e.to_string())),
         },
         Err(e) => Err(anyhow!(e.to_string())),
     }
