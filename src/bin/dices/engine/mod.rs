@@ -15,6 +15,7 @@ use serde::{Deserialize, Serialize};
 use dices_rs::dice::result::Res;
 
 use crate::compiler::{Action, Compiler};
+use crate::engine::complete::MyHelper;
 
 use self::core::Cmd;
 
@@ -74,6 +75,10 @@ impl Engine {
     ///
     pub fn run(&mut self, repl: &mut Editor<()>) -> Result<()> {
         let cc = Compiler::new(&self.cmds);
+
+        // Finish the repl configuration
+        //
+        repl.set_helper(MyHelper);
 
         trace!("Start our input loop");
         loop {
