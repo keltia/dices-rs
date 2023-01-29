@@ -9,16 +9,14 @@
 //! # use std::path::PathBuf;
 //! use dices_rs::engine::Engine;
 //!
-//! let e = Engine::new();
-//! let aliases = e.load_aliases(Some(PathBuf::from("/some/location/aliases")))?;
+//! let e = Engine::new().with(Some(PathBuf::from("/some/location/aliases")));
 //! ```
 //! or et get only the default aliases:
 //! ```no_run
 //! # use std::path::PathBuf;
 //! use dices_rs::engine::Engine;
 //!
-//! let e = Engine::new();
-//! let aliases = e.load_aliases(None).unwrap();
+//! let e = Engine::new().with(None);
 //! ```
 //!
 //! File format:
