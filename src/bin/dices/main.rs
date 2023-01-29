@@ -8,30 +8,17 @@ use rustyline::{config::BellStyle::Visible, CompletionType::List, Config, EditMo
 use stderrlog::LogLevelNum::{Debug, Info, Trace};
 
 use crate::cli::Opts;
-use crate::engine::Engine;
 use crate::version::version;
 
+use dices_rs::engine::Engine;
+use dices_rs::makepath;
+
 mod cli;
-mod compiler;
-mod engine;
 mod version;
 
 const BASE_DIR: &str = ".config";
 const ALIASES_FILE: &str = "aliases";
 const HISTORY_FILE: &str = "history";
-
-/// Simple macro to generate PathBuf from a series of entries
-///
-#[macro_export]
-macro_rules! makepath {
-    ($($item:expr),+) => {
-        [
-        $(PathBuf::from($item),)+
-        ]
-        .iter()
-        .collect()
-    };
-}
 
 /// Main entry point
 ///

@@ -12,9 +12,8 @@ use log::{error, info, trace};
 use rustyline::{error::ReadlineError, Editor};
 use serde::{Deserialize, Serialize};
 
-use dices_rs::dice::result::Res;
-
 use crate::compiler::{Action, Compiler};
+use crate::dice::result::Res;
 
 use self::core::Cmd;
 
@@ -60,7 +59,7 @@ const PS1: &str = "Dices> ";
 /// Easier to carry around
 ///
 pub struct Engine {
-    pub(crate) cmds: HashMap<String, Command>,
+    pub cmds: HashMap<String, Command>,
 }
 
 impl Engine {
@@ -204,7 +203,7 @@ impl Engine {
     fn builtin_commands() -> Engine {
         trace!("builtin_commands(commands.yaml)");
         let all: HashMap<String, Command> =
-            serde_yaml::from_str(include_str!("../commands.yaml")).unwrap();
+            serde_yaml::from_str(include_str!("../bin/dices/commands.yaml")).unwrap();
         Engine { cmds: all }
     }
 }
@@ -258,7 +257,7 @@ mod tests {
     #[test]
     fn test_engine_new() {
         let all: HashMap<String, Command> =
-            serde_yaml::from_str(include_str!("../../../../testdata/builtins.yaml")).unwrap();
+            serde_yaml::from_str(include_str!("../../testdata/builtins.yaml")).unwrap();
 
         let n = Engine::new();
         all.into_iter().for_each(|(name, cmd)| {
@@ -277,7 +276,7 @@ mod tests {
         }];
 
         let all: HashMap<String, Command> =
-            serde_yaml::from_str(include_str!("../../../../testdata/merged.yaml")).unwrap();
+            serde_yaml::from_str(include_str!("../../testdata/merged.yaml")).unwrap();
 
         let n = n.merge(doom);
 

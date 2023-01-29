@@ -10,7 +10,7 @@ use log::{debug, error, trace};
 use nom::{character::complete::space0, sequence::preceded};
 use serde::{Deserialize, Serialize};
 
-use dices_rs::dice::{
+use crate::dice::{
     parse::{parse_open, parse_with_bonus},
     result::Res,
     Rollable,
