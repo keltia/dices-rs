@@ -167,7 +167,7 @@ impl Engine {
                     Command::Macro { .. } => "macro",
                     _ => "special",
                 };
-                format!("{tag}\t{} = {:?}", n, c)
+                format!("{tag}\t{n} = {c:?}")
             })
             .join("\n")
     }
