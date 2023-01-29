@@ -62,6 +62,14 @@ pub struct Engine {
     pub cmds: HashMap<String, Command>,
 }
 
+/// Default implementation for clippy
+///
+impl Default for Engine {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Engine {
     /// Create a new instance
     ///
