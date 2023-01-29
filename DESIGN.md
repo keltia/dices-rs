@@ -30,6 +30,8 @@ There are different builtin commands:
 - exit
 - new
 
+See the `commands.yaml`  file for all of them.
+
 ### Aliases
 
 We load and parse the `aliases` file (from known location or command-line). This will give you a list of either
@@ -41,15 +43,23 @@ For convenience, there are some aliases pre-defined:
 - doom for a special roll of 2D6
 - help for list
 
+## Compiler
+
+The compiler does for each line:
+
+- recursively parse to identify the potential command:
+  - list/exit/etc. break immediately
+  - alias can point to a macro or another alias
+  - macros can be referring to aliases, builtin command of another macro
+  - if a builtin command is identified, return an Execute action.
+
 ## Execution
 
-- load alias file and merge builtin ones
-- load engine with builtin commands, merge in aliases
+- load alias file
+- create an engine with builtin commands, load aliases
+- engine create an instance of the compiler with all the commands
 - for each input
-  - parse
-  - list/exit/etc. break
-  - alias can point to a New or another Alias
-  - builtin are directly executed
-  - new: we need to parse again possibly recursively until we get to a builtin/alias
-- get result and display it
+  - compile the line and return an action
+  - do whatever is needed for each possible action
+  - exit at the end
 

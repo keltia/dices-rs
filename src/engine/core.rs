@@ -8,8 +8,9 @@
 use anyhow::{anyhow, Result};
 use log::{debug, error, trace};
 use nom::{character::complete::space0, sequence::preceded};
+use serde::{Deserialize, Serialize};
 
-use dices_rs::dice::{
+use crate::dice::{
     parse::{parse_open, parse_with_bonus},
     result::Res,
     Rollable,
@@ -19,7 +20,7 @@ use dices_rs::dice::{
 /// Everything above will be reduced (aka compiled) into executing
 /// one of these.
 ///
-#[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
 pub enum Cmd {
     /// Roll of dices
     Dice,

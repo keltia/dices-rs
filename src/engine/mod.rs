@@ -8,12 +8,12 @@ use std::fmt::{Debug, Formatter};
 
 use anyhow::{anyhow, Result};
 use itertools::Itertools;
-use log::{debug, error, info, trace};
+use log::{error, info, trace};
 use rustyline::{error::ReadlineError, Editor};
+use serde::{Deserialize, Serialize};
 
 use crate::compiler::{Action, Compiler};
-
-use dices_rs::dice::result::Res;
+use crate::dice::result::Res;
 
 use self::core::Cmd;
 
@@ -23,7 +23,7 @@ pub mod core;
 
 /// This describe all possibilities for commands and aliases
 ///
-#[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
 pub enum Command {
     /// New command:  define a specific command in a string
     Macro { name: String, cmd: String },
@@ -59,7 +59,15 @@ const PS1: &str = "Dices> ";
 /// Easier to carry around
 ///
 pub struct Engine {
-    pub(crate) cmds: HashMap<String, Command>,
+    pub cmds: HashMap<String, Command>,
+}
+
+/// Default implementation for clippy
+///
+impl Default for Engine {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Engine {
@@ -127,10 +135,7 @@ impl Engine {
                 Action::Error(s) => Err(anyhow!("impossible action: {}", s)),
             };
             match res {
-                Ok(res) => {
-                    info!("roll = {:?}", res);
-                    debug!("{:?}", res);
-                }
+                Ok(res) => info!("roll = {:?}", res),
                 Err(e) => error!("{}", e.to_string()),
             }
         }
@@ -143,21 +148,14 @@ impl Engine {
         self.cmds.contains_key(name)
     }
 
-    /// Call insert() on the inner hash
-    ///
-    pub fn insert(&mut self, k: String, v: Command) -> &mut Self {
-        self.cmds.insert(k, v);
-        self
-    }
-
     /// Merge a list of commands into the main engine.
     ///
-    pub fn merge(&mut self, aliases: Vec<Command>) -> &mut Self {
+    pub fn merge(mut self, aliases: Vec<Command>) -> Self {
         // And merge in aliases
         //
         aliases.iter().for_each(|a| match a {
             Command::Macro { ref name, .. } | Command::Alias { ref name, .. } => {
-                self.insert(name.to_owned(), a.to_owned());
+                self.cmds.insert(name.to_owned(), a.to_owned());
             }
             _ => (),
         });
@@ -176,7 +174,7 @@ impl Engine {
                     Command::Macro { .. } => "macro",
                     _ => "special",
                 };
-                format!("{tag}\t{} = {:?}", n, c)
+                format!("{tag}\t{n} = {c:?}")
             })
             .join("\n")
     }
@@ -190,7 +188,7 @@ impl Engine {
                 Command::Alias { name, cmd } => Some((name.to_owned(), cmd)),
                 _ => None,
             })
-            .map(|(n, c)| format!("alias \t{n} = {c:.}"))
+            .map(|(n, c)| format!("alias \t{n} = {c}"))
             .join("\n")
     }
 
@@ -203,38 +201,18 @@ impl Engine {
                 Command::Macro { name, cmd } => Some((name.to_owned(), cmd)),
                 _ => None,
             })
-            .map(|(n, c)| format!("macro \t{n} = {c:.}"))
+            .map(|(n, c)| format!("macro \t{n} = {c}"))
             .join("\n")
     }
 
-    /// Primary aka builtin commands
-    ///
-    const CMDS: [&'static str; 6] = ["aliases", "dice", "exit", "list", "macros", "open"];
-
-    /// Build a list of `Command` from the builtin commands
+    /// Build a list of `Command` from the builtin commands using a YAML file representing
+    /// the list of commands and their type
     ///
     fn builtin_commands() -> Engine {
-        debug!("builtin_commands");
-        let all = Self::CMDS.iter().map(|&n| match n {
-            // These are caught before
-            //
-            "aliases" => (n.to_string(), Command::Aliases),
-            "exit" => (n.to_string(), Command::Exit),
-            "list" => (n.to_string(), Command::List),
-            "macros" => (n.to_string(), Command::Macros),
-            // General case
-            //
-            _ => (
-                n.to_string(),
-                Command::Builtin {
-                    name: n.to_string(),
-                    cmd: Cmd::from(n),
-                },
-            ),
-        });
-        Engine {
-            cmds: HashMap::<String, Command>::from_iter(all),
-        }
+        trace!("builtin_commands(commands.yaml)");
+        let all: HashMap<String, Command> =
+            serde_yaml::from_str(include_str!("../bin/dices/commands.yaml")).unwrap();
+        Engine { cmds: all }
     }
 }
 
@@ -248,11 +226,14 @@ impl Debug for Engine {
 mod tests {
     use rstest::rstest;
 
-    use super::*;
     use crate::engine::Command;
+
+    use super::*;
 
     #[test]
     fn test_builtin_commands() {
+        // Not using `include_str!` here because it would mean testing if A == A
+        //
         let all = HashMap::<String, Command>::from([
             (
                 "dice".to_string(),
@@ -283,26 +264,8 @@ mod tests {
 
     #[test]
     fn test_engine_new() {
-        let all = HashMap::<String, Command>::from([
-            (
-                "dice".to_string(),
-                Command::Builtin {
-                    name: "dice".to_string(),
-                    cmd: Cmd::Dice,
-                },
-            ),
-            ("exit".to_string(), Command::Exit),
-            ("list".to_string(), Command::List),
-            ("aliases".to_string(), Command::Aliases),
-            ("macros".to_string(), Command::Macros),
-            (
-                "open".to_string(),
-                Command::Builtin {
-                    name: "open".to_string(),
-                    cmd: Cmd::Open,
-                },
-            ),
-        ]);
+        let all: HashMap<String, Command> =
+            serde_yaml::from_str(include_str!("../../testdata/builtins.yaml")).unwrap();
 
         let n = Engine::new();
         all.into_iter().for_each(|(name, cmd)| {
@@ -313,44 +276,22 @@ mod tests {
 
     #[test]
     fn test_engine_merge() {
-        let mut e = Engine::new();
+        let n = Engine::new();
 
         let doom = vec![Command::Macro {
             name: "doom".to_string(),
-            cmd: "2D6".to_string(),
+            cmd: "dice 2D6".to_string(),
         }];
 
-        let all = HashMap::<String, Command>::from([
-            (
-                "dice".to_string(),
-                Command::Builtin {
-                    name: "dice".to_string(),
-                    cmd: Cmd::Dice,
-                },
-            ),
-            ("exit".to_string(), Command::Exit),
-            ("list".to_string(), Command::List),
-            ("aliases".to_string(), Command::Aliases),
-            ("macros".to_string(), Command::Macros),
-            (
-                "open".to_string(),
-                Command::Builtin {
-                    name: "open".to_string(),
-                    cmd: Cmd::Open,
-                },
-            ),
-            (
-                "doom".to_string(),
-                Command::Macro {
-                    name: "doom".to_string(),
-                    cmd: "2D6".to_string(),
-                },
-            ),
-        ]);
+        let all: HashMap<String, Command> =
+            serde_yaml::from_str(include_str!("../../testdata/merged.yaml")).unwrap();
 
-        e.merge(doom);
+        let n = n.merge(doom);
 
-        assert_eq!(all, e.cmds);
+        all.into_iter().for_each(|(name, cmd)| {
+            assert!(n.cmds.contains_key(&name));
+            assert_eq!(&cmd, n.cmds.get(&name).unwrap());
+        });
     }
 
     #[rstest]
@@ -367,14 +308,5 @@ mod tests {
         let e = Engine::builtin_commands();
         let v_str = e.aliases();
         assert!(v_str.is_empty());
-    }
-
-    /// TODO Finish the test
-    ///
-    #[test]
-    fn test_commands_list() {
-        let e = Engine::builtin_commands();
-        let _str = r##""##;
-        dbg!(e.list());
     }
 }

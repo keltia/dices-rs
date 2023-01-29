@@ -1,6 +1,6 @@
 [package]
 name = "dices-rs"
-version = "0.9.5"
+version = "0.9.6"
 authors = ["Ollivier Robert <roberto@keltia.net>"]
 description = "Small CLI utility to roll dices."
 edition = "2021"
@@ -25,17 +25,19 @@ harness = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.66"
-clap = { version = "4.0.29", features = ["derive", "cargo"] }
-home = "0.5.3"
+anyhow = "1.0.68"
+clap = { version = "4.1.4", features = ["derive", "cargo"] }
+home = "0.5.4"
 itertools = "0.10.5"
 log = "0.4.17"
-nom = "7.1.1"
-rand = "0.8.4"
-rustyline = { version = "10.0.0", features = ["case_insensitive_history_search"] }
+nom = "7.1.3"
+rand = "0.8.5"
+rustyline = { version = "10.1.1", features = ["case_insensitive_history_search"] }
+serde = { version = "1.0.152", features = ["derive"] }
+serde_yaml = "0.9.17"
 stderrlog = "0.5.4"
 
 [dev-dependencies]
-assert_cmd = { version = "2.0.7", features = ["color", "color-auto"] }
+assert_cmd = { version = "2.0.8", features = ["color", "color-auto"] }
 criterion = "0.4.0"
 rstest = "0.16.0"
