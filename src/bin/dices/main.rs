@@ -4,7 +4,9 @@ use anyhow::{anyhow, Result};
 use clap::Parser;
 use home::home_dir;
 use log::trace;
-use rustyline::{config::BellStyle::Visible, CompletionType::List, Config, EditMode, Editor};
+use rustyline::{
+    config::BellStyle::Visible, CompletionType::List, Config, DefaultEditor, EditMode,
+};
 use stderrlog::LogLevelNum::{Debug, Info, Trace};
 
 use crate::cli::Opts;
@@ -61,12 +63,12 @@ fn main() -> Result<()> {
     //
     let cfg = Config::builder()
         .completion_type(List)
-        .history_ignore_dups(true)
+        .history_ignore_dups(true)?
         .history_ignore_space(true)
         .bell_style(Visible)
         .edit_mode(EditMode::Emacs)
         .build();
-    let mut repl = Editor::<()>::with_config(cfg)?;
+    let mut repl = DefaultEditor::with_config(cfg)?;
 
     // Load history if there is one
     //
