@@ -31,6 +31,10 @@ pub fn internal_roll(sides: usize) -> usize {
     }
 }
 
+pub fn rng_roll(sides: usize) -> usize {
+    thread_rng().gen_range(1..=sides)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -39,6 +43,15 @@ mod tests {
     fn test_internal_roll() {
         for _i in 0..10 {
             let r = internal_roll(6);
+
+            assert!(r <= 6)
+        }
+    }
+
+    #[test]
+    fn test_rng_roll() {
+        for _i in 0..10 {
+            let r = rng_roll(6);
 
             assert!(r <= 6)
         }
