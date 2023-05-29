@@ -26,6 +26,11 @@ harness = false
 name = "random"
 harness = false
 
+[features]
+default = ["rng"]
+loop = []
+rng = []
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
