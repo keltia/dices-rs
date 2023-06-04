@@ -41,7 +41,7 @@
 
 use log::trace;
 
-use internal::internal_roll;
+pub use internal::internal_roll;
 use parse::parse_with_bonus;
 use result::Res;
 
