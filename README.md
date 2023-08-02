@@ -6,6 +6,13 @@
 
 main:  [![main](https://github.com/keltia/dices-rs/actions/workflows/rust.yml/badge.svg)](https://github.com/keltia/dices-rs/actions/workflows/rust.yml)
 develop:  [![develop](https://github.com/keltia/dices-rs/actions/workflows/develop.yml/badge.svg)](https://github.com/keltia/dices-rs/actions/workflows/develop.yml)
+[![dependency status](https://deps.rs/repo/github/keltia/dices-rs/status.svg)](https://deps.rs/repo/github/keltia/dices-rs)
+[![GitHub release](https://img.shields.io/github/release/keltia/dices-rs.svg)](https://github.com/keltia/dices-rs/releases/)
+[![GitHub issues](https://img.shields.io/github/issues/keltia/dices-rs.svg)](https://github.com/keltia/dices-rs/issues)
+[![dices-rs: 1.56+]][Rust 1.56]
+[![SemVer](https://img.shields.io/badge/semver-2.0.0-blue)](https://semver.org/spec/v2.0.0.html)
+[![License](https://img.shields.io/crates/l/mit)](https://opensource.org/licenses/MIT)
+
 
 ## Description
 
@@ -151,7 +158,7 @@ Please see [CONTRIBUTING.md](CONTRIBUTING.md) for some simple rules.
 
 I use Git Flow for this package so please use something similar or the usual github workflow.
 
-1. Fork it ( https://github.com/keltia/dmarc-rs/fork )
+1. Fork it ( https://github.com/keltia/dices-rs/fork )
 2. Checkout the develop branch (`git checkout develop`)
 3. Create your feature branch (`git checkout -b my-new-feature`)
 4. Commit your changes (`git commit -am 'Add some feature'`)
