@@ -14,6 +14,7 @@
 use rand::prelude::*;
 
 /// Head or Tail?
+#[cfg(feature = "loop")]
 fn biased_dice(p: f64) -> bool {
     let mut rng = rand::thread_rng();
     let f: f64 = rng.gen();
@@ -21,6 +22,10 @@ fn biased_dice(p: f64) -> bool {
 }
 
 /// Return a roll of a dice of size `sides`
+///
+/// Grows slower as the size of the dice grows
+///
+#[cfg(not(feature = "rng"))]
 pub fn internal_roll(sides: usize) -> usize {
     let mut i = 0;
     loop {
@@ -29,6 +34,15 @@ pub fn internal_roll(sides: usize) -> usize {
         }
         i += 1;
     }
+}
+
+/// Return a roll of a dice of size `sides`
+///
+/// alternate, `rand` version
+///
+#[cfg(feature = "rng")]
+pub fn internal_roll(sides: usize) -> usize {
+    thread_rng().gen_range(1..=sides)
 }
 
 #[cfg(test)]

@@ -13,6 +13,7 @@
 //! - `parse_open_bonus`  for an open-ended dice
 
 use itertools::Itertools;
+use log::trace;
 use nom::{
     character::complete::{i8, one_of, space0, u32, u8},
     combinator::{map, opt},
@@ -77,7 +78,7 @@ fn parse_nbonus(input: &str) -> IResult<&str, std::primitive::i8> {
 ///
 #[inline]
 fn add_bonus((mut ds, b): (DiceSet, std::primitive::i8)) -> DiceSet {
-    dbg!(&ds, &b);
+    trace!("{ds:?}, {b:?}");
     if b != 0 {
         ds.0.push(Dice::Bonus(b.into()))
     };

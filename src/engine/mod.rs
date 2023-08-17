@@ -9,7 +9,7 @@ use std::fmt::{Debug, Formatter};
 use eyre::{eyre, Result};
 use itertools::Itertools;
 use log::{error, info, trace};
-use rustyline::{error::ReadlineError, Editor};
+use rustyline::{error::ReadlineError, DefaultEditor};
 use serde::{Deserialize, Serialize};
 
 use crate::compiler::{Action, Compiler};
@@ -79,7 +79,7 @@ impl Engine {
 
     /// Main loop here, refactored from `main()`.
     ///
-    pub fn run(&mut self, repl: &mut Editor<()>) -> Result<()> {
+    pub fn run(&mut self, repl: &mut DefaultEditor) -> Result<()> {
         let cc = Compiler::new(&self.cmds);
 
         trace!("Start our input loop");
@@ -99,7 +99,7 @@ impl Engine {
 
             // Save it
             //
-            repl.add_history_entry(line.as_str());
+            repl.add_history_entry(line.as_str())?;
 
             // Some actions have to be executed here because they do not involve the "core" dice-related
             // commands and interact with the interactive shell like `exit` and `list`
