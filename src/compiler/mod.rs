@@ -7,7 +7,7 @@
 
 use std::collections::HashMap;
 
-use anyhow::{anyhow, bail, Result};
+use eyre::{eyre, bail, Result};
 use log::trace;
 use nom::{character::complete::alphanumeric1, IResult};
 
@@ -105,7 +105,7 @@ impl Compiler {
         //
         let (input, name) = match parse_keyword(input) {
             Ok((input, name)) => (input.to_owned(), name.to_owned()),
-            Err(_) => return Err(anyhow!("invalid command")),
+            Err(_) => return Err(eyre!("invalid command")),
         };
 
         trace!("name={name} with input={input}");
@@ -117,7 +117,7 @@ impl Compiler {
                 trace!("parse found {:?}", cmd);
                 Ok((input, cmd.to_owned()))
             }
-            None => return Err(anyhow!("unknown command")),
+            None => return Err(eyre!("unknown command")),
         }
     }
 
@@ -167,7 +167,7 @@ impl Compiler {
         //
         max -= 1;
         if max == 0 {
-            return Err(anyhow!("max recursion level reached for {}", input));
+            return Err(eyre!("max recursion level reached for {}", input));
         }
         trace!("recurse(input)={input} max={max}");
         self.recurse(&input, Some(max))

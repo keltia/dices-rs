@@ -6,7 +6,7 @@
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 
-use anyhow::{anyhow, Result};
+use eyre::{eyre, Result};
 use itertools::Itertools;
 use log::{error, info, trace};
 use rustyline::{error::ReadlineError, Editor};
@@ -49,7 +49,7 @@ impl Command {
     pub fn execute(&self, input: &str) -> Result<Res> {
         match self {
             Command::Builtin { cmd, .. } => cmd.execute(input),
-            _ => Err(anyhow!("you can't execute other than Builtin")),
+            _ => Err(eyre!("you can't execute other than Builtin")),
         }
     }
 }
@@ -132,7 +132,7 @@ impl Engine {
                     dbg!(&res);
                     res
                 }
-                Action::Error(s) => Err(anyhow!("impossible action: {}", s)),
+                Action::Error(s) => Err(eyre!("impossible action: {}", s)),
             };
             match res {
                 Ok(res) => info!("roll = {:?}", res),

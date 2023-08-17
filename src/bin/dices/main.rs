@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use anyhow::{anyhow, Result};
+use eyre::{eyre, Result};
 use clap::Parser;
 use home::home_dir;
 use log::trace;
@@ -96,8 +96,8 @@ fn main() -> Result<()> {
                 trace!("Saved history...");
                 Ok(())
             }
-            Err(e) => Err(anyhow!("Error: can't save history: {}", e.to_string())),
+            Err(e) => Err(eyre!("Error: can't save history: {}", e.to_string())),
         },
-        Err(e) => Err(anyhow!(e.to_string())),
+        Err(e) => Err(eyre!(e.to_string())),
     }
 }

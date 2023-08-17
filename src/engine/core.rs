@@ -5,7 +5,7 @@
 //!
 //! XXX If anyone add core commands, do not forget to document and test.
 
-use anyhow::{anyhow, Result};
+use eyre::{eyre, Result};
 use log::{debug, error, trace};
 use nom::{character::complete::space0, sequence::preceded};
 use serde::{Deserialize, Serialize};
@@ -48,7 +48,7 @@ impl Cmd {
         let r = match self {
             Cmd::Dice => preceded(space0, parse_with_bonus)(input),
             Cmd::Open => preceded(space0, parse_open)(input),
-            _ => return Err(anyhow!("invalid Cmd")),
+            _ => return Err(eyre!("invalid Cmd")),
         };
         let ds = match r {
             Ok((_input, ds)) => {
@@ -57,7 +57,7 @@ impl Cmd {
             }
             Err(e) => {
                 error!("{:?}", e.to_string());
-                return Err(anyhow!("error parsing input"));
+                return Err(eyre!("error parsing input"));
             }
         };
         Ok(ds.roll())
