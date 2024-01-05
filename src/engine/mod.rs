@@ -129,7 +129,6 @@ impl Engine {
                     trace!("exec={:?}", cmd);
 
                     let res = cmd.execute(&input);
-                    dbg!(&res);
                     res
                 }
                 Action::Error(s) => Err(eyre!("impossible action: {}", s)),
