@@ -163,17 +163,22 @@ impl Engine {
 
     /// Lists all available commands
     ///
+    /// Sort on command name.
+    ///
+    /// TODO: sort inside category (tag)
+    ///
     pub fn list(&self) -> String {
-        self.cmds
-            .iter()
-            .map(|(n, c)| {
+        let cmds = self.cmds.keys().sorted();
+        cmds
+            .map(|k| {
+                let c = self.cmds.get(k).unwrap();
                 let tag = match c {
                     Command::Alias { .. } => "alias",
                     Command::Builtin { .. } => "builtin",
                     Command::Macro { .. } => "macro",
                     _ => "special",
                 };
-                format!("{tag}\t{n} = {c:?}")
+                format!("{tag}\t{k} = {c:?}")
             })
             .join("\n")
     }
