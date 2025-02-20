@@ -15,13 +15,15 @@ use serde::{Deserialize, Serialize};
 use crate::compiler::{Action, Compiler};
 use crate::dice::result::Res;
 
-use self::core::Cmd;
+mod aliases;
+mod complete;
+mod cmd;
+mod parse;
 
-pub mod aliases;
-pub mod complete;
-pub mod core;
+pub use cmd::*;
+pub use parse::*;
 
-/// This describe all possibilities for commands and aliases
+/// This describes all possibilities for commands and aliases
 ///
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
 pub enum Command {
@@ -58,16 +60,9 @@ const PS1: &str = "Dices> ";
 
 /// Easier to carry around
 ///
+#[derive(Clone, Default, Deserialize, Serialize)]
 pub struct Engine {
     pub cmds: HashMap<String, Command>,
-}
-
-/// Default implementation for clippy
-///
-impl Default for Engine {
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
 impl Engine {
@@ -141,7 +136,7 @@ impl Engine {
         Ok(())
     }
 
-    /// Check whether a given command exist
+    /// Check whether a given command exists
     ///
     pub fn exist(&self, name: &str) -> bool {
         self.cmds.contains_key(name)
@@ -149,11 +144,11 @@ impl Engine {
 
     /// Merge a list of commands into the main engine.
     ///
-    pub fn merge(mut self, aliases: Vec<Command>) -> Self {
+    pub fn merge(&mut self, aliases: Vec<Command>) -> &mut Self {
         // And merge in aliases
         //
         aliases.iter().for_each(|a| match a {
-            Command::Macro { ref name, .. } | Command::Alias { ref name, .. } => {
+            Command::Macro { name, .. } | Command::Alias { name, .. } => {
                 self.cmds.insert(name.to_owned(), a.to_owned());
             }
             _ => (),
@@ -217,6 +212,10 @@ impl Engine {
         let all: HashMap<String, Command> =
             serde_yaml::from_str(include_str!("../bin/dices/commands.yaml")).unwrap();
         Engine { cmds: all }
+    }
+    
+    pub fn build(&mut self) -> Self {
+        self.clone()
     }
 }
 
