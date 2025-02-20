@@ -1,4 +1,4 @@
-fuzz
+fuzz/
 .idea
 .jj
 *.lock
