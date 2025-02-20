@@ -11,13 +11,15 @@
 //!
 
 /// Include the [rand] family
-use rand::prelude::*;
+use rand::Rng;
+
 
 /// Head or Tail?
 #[cfg(feature = "loop")]
-fn biased_dice(p: f64) -> bool {
-    let mut rng = rand::thread_rng();
-    let f: f64 = rng.gen();
+fn biased_dice(p: f64) -> bool { 
+    let mut rng = rand::rng();
+
+    let f: f64 = rng.random();
     f < p
 }
 
@@ -42,7 +44,7 @@ pub fn internal_roll(sides: usize) -> usize {
 ///
 #[cfg(feature = "rng")]
 pub fn internal_roll(sides: usize) -> usize {
-    thread_rng().gen_range(1..=sides)
+    rand::rng().random_range(1..=sides)
 }
 
 #[cfg(test)]

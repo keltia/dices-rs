@@ -8,8 +8,8 @@ use rand::Rng;
 
 /// Head or Tail?
 fn biased_dice(p: f64) -> bool {
-    let mut rng = rand::thread_rng();
-    let f: f64 = rng.gen();
+    let mut rng = rand::rng();
+    let f: f64 = rng.random();
     f < p
 }
 
