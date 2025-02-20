@@ -12,7 +12,7 @@ use stderrlog::LogLevelNum::{Debug, Info, Trace};
 use crate::cli::Opts;
 use crate::version::version;
 
-use dices_rs::engine::Engine;
+use dices_rs::Engine;
 
 mod cli;
 mod version;
