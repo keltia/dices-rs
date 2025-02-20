@@ -1,5 +1,6 @@
 // Stitch our modules together
 mod compiler;
 pub mod dice;
-pub mod engine;
+mod engine;
 
+pub use engine::*;
