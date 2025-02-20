@@ -3,7 +3,7 @@ name = "dices-rs"
 version = "0.9.6"
 authors = ["Ollivier Robert <roberto@keltia.net>"]
 description = "Small CLI utility to roll dices."
-edition = "2021"
+edition = "2024"
 keywords = ["dice", "roll", "RPG", "roll", "random"]
 categories = ["game-development", "games"]
 repository = "https://github.com/keltia/dices-rs"
@@ -36,17 +36,17 @@ rng = []
 [dependencies]
 eyre = "0.6"
 clap = { version = "4", features = ["derive", "cargo"] }
-home = "0.5"
-itertools = "0.11"
+directories = "6"
+itertools = "0.14"
 log = "0.4"
 nom = "7.1"
-rand = "0.8"
-rustyline = { version = "12.0", features = ["case_insensitive_history_search"] }
+rand = "0.9"
+rustyline = { version = "15.0", features = ["case_insensitive_history_search"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.9"
-stderrlog = "0.5"
+stderrlog = "0.6"
 
 [dev-dependencies]
 assert_cmd = { version = "2.0", features = ["color", "color-auto"] }
 criterion = "0.5"
-rstest = "0.18"
+rstest = "0.25"
