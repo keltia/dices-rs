@@ -7,14 +7,14 @@
 //!
 //! ```no_run
 //! # use std::path::PathBuf;
-//! use dices_rs::engine::Engine;
+//! use dices_rs::Engine;
 //!
 //! let e = Engine::new().with(Some(PathBuf::from("/some/location/aliases")));
 //! ```
 //! or et get only the default aliases:
 //! ```no_run
 //! # use std::path::PathBuf;
-//! use dices_rs::engine::Engine;
+//! use dices_rs::Engine;
 //!
 //! let e = Engine::new().with(None);
 //! ```
@@ -33,61 +33,14 @@ use std::path::PathBuf;
 
 use itertools::Itertools;
 use log::{debug, trace};
-use nom::{
-    branch::alt,
-    bytes::complete::{is_not, tag},
-    character::complete::{alpha1, one_of, space0, space1},
-    combinator::map,
-    sequence::{delimited, preceded, separated_pair, terminated},
-    IResult,
-};
+use nom::branch::alt;
 
-use crate::engine::{Command, Engine};
-
-/// Parse a comment introduced by one of #, // and ! followed by a space
-///
-fn parse_comment(input: &str) -> IResult<&str, Command> {
-    trace!("parse_comment");
-    let ret_comment = |_s: &str| Command::Comment;
-    let r = terminated(
-        alt((tag("#"), tag("//"), tag("!"))),
-        preceded(space1, is_not("\r\n")),
-    );
-    map(r, ret_comment)(input)
-}
-
-/// Parse a line, return a Command::Macro that will be interpreted above as existing (alias) or
-/// new (macro)
-///
-fn parse_alias(input: &str) -> IResult<&str, Command> {
-    trace!("parse_alias");
-    let check = |(first, second): (&str, &str)| {
-        trace!("{}", second);
-
-        Command::Macro {
-            name: first.to_string(),
-            cmd: second.to_string(),
-        }
-    };
-    let r = separated_pair(
-        alpha1,
-        delimited(space0, tag("="), space0),
-        alt((parse_string, alpha1)),
-    );
-    map(r, check)(input)
-}
-
-/// Parse the new command
-///
-fn parse_string(input: &str) -> IResult<&str, &str> {
-    trace!("parse_string");
-    delimited(one_of("\"'"), is_not("\""), one_of("\"'"))(input)
-}
+use crate::{parse_alias, parse_comment, Command, Engine};
 
 impl Engine {
     /// Load aliases as a list of `Command`.
     ///
-    pub fn with(self, fname: Option<PathBuf>) -> Self {
+    pub fn with(&mut self, fname: Option<PathBuf>) -> &mut Self {
         trace!("with");
 
         // Always load builtins
@@ -101,7 +54,7 @@ impl Engine {
                     trace!("Reading {:?} file...", fname);
                     let content = fs::read_to_string(fname).unwrap_or_else(|_| "".to_string());
 
-                    // Get all from file
+                    // Get all from the file
                     //
                     let added: Vec<Command> = content
                         .lines()
@@ -146,10 +99,10 @@ impl Engine {
         let list = list.into_iter().unique().collect::<Vec<Command>>();
         debug!("aliases={list:?}");
         trace!("{} aliases/macros added", list.len());
-
         self.merge(list)
     }
 }
+
 /// Define some builtin aliases
 ///
 fn builtin_aliases() -> Vec<Command> {
@@ -174,7 +127,7 @@ fn builtin_aliases() -> Vec<Command> {
 mod tests {
     use std::collections::HashMap;
     use std::path::Path;
-
+    use crate::engine::parse::parse_string;
     use super::*;
 
     #[test]
@@ -259,7 +212,7 @@ mod tests {
             ("macros".to_string(), Command::Macros),
         ]);
 
-        let n = Engine::new().with(Some(fname));
+        let n = Engine::new().with(Some(fname)).build();
 
         all.into_iter().for_each(|(name, cmd)| {
             assert!(n.cmds.contains_key(&name));
@@ -289,7 +242,8 @@ mod tests {
             ("macros".to_string(), Command::Macros),
         ]);
 
-        let n = Engine::new().with(None);
+        let n = Engine::new().with(None).build();
+        eprintln!("{:?}", n.cmds);
 
         all.into_iter().for_each(|(name, cmd)| {
             assert!(n.cmds.contains_key(&name));
