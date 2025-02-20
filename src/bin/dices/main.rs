@@ -54,8 +54,7 @@ fn main() -> Result<()> {
     stderrlog::new()
         .modules(["dices", "dices_rs"])
         .verbosity(lvl)
-        .init()
-        .unwrap();
+        .init()?;
 
     trace!("Load config...");
 
