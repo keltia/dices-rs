@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use eyre::{eyre, Result};
 use clap::Parser;
-use home::home_dir;
+use directories::BaseDirs;
 use log::trace;
 use rustyline::{
     config::BellStyle::Visible, CompletionType::List, Config, DefaultEditor, EditMode,
@@ -13,7 +13,6 @@ use crate::cli::Opts;
 use crate::version::version;
 
 use dices_rs::engine::Engine;
-use dices_rs::makepath;
 
 mod cli;
 mod version;
@@ -27,9 +26,10 @@ const HISTORY_FILE: &str = "history";
 fn main() -> Result<()> {
     let opts: Opts = Opts::parse();
 
-    let home = home_dir().unwrap();
-    let hist: PathBuf = makepath!(&home, BASE_DIR, "dices", HISTORY_FILE);
-    let def_alias: PathBuf = makepath!(&home, BASE_DIR, "dices", ALIASES_FILE);
+    let base = BaseDirs::new().unwrap();
+    let home = base.home_dir();
+    let hist = home.join(BASE_DIR).join("dices").join(HISTORY_FILE);
+    let def_alias= home.join(BASE_DIR).join("dices").join(ALIASES_FILE);
 
     // Add banner
     //

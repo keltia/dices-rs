@@ -173,8 +173,7 @@ fn builtin_aliases() -> Vec<Command> {
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
-
-    use crate::makepath;
+    use std::path::Path;
 
     use super::*;
 
@@ -211,7 +210,7 @@ mod tests {
 
     #[test]
     fn test_load_aliases_with_file() {
-        let fname: PathBuf = makepath!("testdata", "aliases");
+        let fname = Path::new("testdata").join("aliases");
         let all = HashMap::<String, Command>::from([
             (
                 "doom".to_string(),
