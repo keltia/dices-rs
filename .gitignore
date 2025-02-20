@@ -1,3 +1,5 @@
+fuzz
 .idea
+.jj
 *.lock
 target
