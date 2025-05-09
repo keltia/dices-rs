@@ -279,7 +279,7 @@ mod tests {
 
     #[test]
     fn test_engine_merge() {
-        let n = Engine::new();
+        let mut n = Engine::new();
 
         let doom = vec![Command::Macro {
             name: "doom".to_string(),
