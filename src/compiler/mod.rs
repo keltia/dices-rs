@@ -1,8 +1,16 @@
-//! This is the compiler part of the program
+//! This is the compiler part of the program that handles command parsing and compilation.
 //!
-//! It does all the parsing, checking that the command we found does exist, resolve macros
-//! and aliases and output our "compiled" code (aka `Action`) and the engine is supposed to
-//! deal with the output.
+//! The compiler is responsible for:
+//! - Parsing raw input strings into commands
+//! - Validating that commands exist
+//! - Resolving macros and aliases recursively
+//! - Producing executable Actions from the input
+//!
+//! The compilation process involves:
+//! 1. Initial parsing of the command string
+//! 2. Recursive resolution of macros/aliases up to MAX_RECUR depth
+//! 3. Validation that the final command is executable
+//! 4. Generation of an Action enum representing the command
 //!
 
 use std::collections::HashMap;
@@ -31,9 +39,15 @@ pub enum Action {
     Macros,
 }
 
-#[derive(Debug)]
-/// Our compiler struct
+/// The Compiler handles parsing and compilation of command strings into executable Actions.
 ///
+/// The Compiler maintains a map of valid commands and provides methods to:
+/// - Parse raw input strings into commands
+/// - Validate commands exist
+/// - Resolve macros and aliases recursively
+/// - Compile input into executable Actions
+///
+#[derive(Debug)]
 pub struct Compiler {
     /// List of all available commands
     cmds: HashMap<String, Command>,

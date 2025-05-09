@@ -1,18 +1,18 @@
 //! Main module to deal with dices, rolls, bonuses, etc.
 //!
-//! We have four types of dices:
+//! We have four types of dice:
 //!
 //! - `Constant(size)`
-//!   always yield the same value
+//!   always yields the same value
 //! - `Regular(size)`
-//!   yield a value between 1 and `size`
+//!   yields a value between 1 and `size`
 //! - `Open(size)`
-//!   like a regular dice but if value is `size`, reroll one more.
+//!   like a regular dice, but if the value is `size`, reroll one more.
 //! - `Bonus(size)`
 //!   Simulate a dice to store the bonus along with dices
 //!
 //! One can use the `Dice` type for individual dices & rolls or the easier `DiceSet` type which
-//! has a `parse()` method which simplify the process.
+//! has a `parse()` method which simplifies the process.
 //!
 //! Examples:
 //! ```
@@ -25,7 +25,7 @@
 //! println!("{:#?}", d.roll());
 //! ```
 //!
-//! We define a `Res` variable in order to allow method chaining.
+//! We define a `Res` variable to allow method chaining.
 //!
 //! ```
 //! use dices_rs::dice::{DiceSet, Rollable};

@@ -1,6 +1,12 @@
 //! Engine module
 //!
-//! This is where all the CLI parsing is done and stuff is executed.
+//! The engine module is responsible for managing the command-line interface,
+//! parsing commands, and executing them. It handles:
+//!
+//! - Command parsing and execution
+//! - Built-in commands management
+//! - Macro and alias handling
+//! - REPL (Read-Eval-Print Loop) interface
 //!
 
 use std::collections::HashMap;
@@ -23,7 +29,13 @@ mod parse;
 pub use cmd::*;
 pub use parse::*;
 
-/// This describes all possibilities for commands and aliases
+/// Represents all possible command types that can be executed by the engine.
+///
+/// The Command enum defines the different kinds of commands available:
+/// - Macros: User-defined commands stored as strings
+/// - Builtins: Core engine commands
+/// - Aliases: Alternative names for existing commands
+/// - Special commands: Exit, List, etc.
 ///
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
 pub enum Command {
@@ -58,7 +70,14 @@ impl Command {
 
 const PS1: &str = "Dices> ";
 
-/// Easier to carry around
+/// Core engine that manages commands and their execution.
+///
+/// The Engine struct maintains a collection of all available commands
+/// including built-ins, macros, and aliases. It provides functionality for:
+/// - Command execution and management
+/// - REPL environment
+/// - Command listing and filtering
+/// - Alias and macro handling
 ///
 #[derive(Clone, Default, Deserialize, Serialize)]
 pub struct Engine {
