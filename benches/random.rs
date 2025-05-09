@@ -2,7 +2,6 @@
 //!
 
 use criterion::{criterion_group, criterion_main, Criterion};
-use log::debug;
 use rand;
 use rand::Rng;
 
@@ -32,7 +31,7 @@ pub fn internal_roll_loop(sides: usize) -> usize {
 /// alternate, `rand` version
 ///
 pub fn internal_roll_rng(sides: usize) -> usize {
-    rand::thread_rng().gen_range(1..=sides)
+    rand::rng().random_range(1..=sides)
 }
 
 fn internal_roll_d20(c: &mut Criterion) {
