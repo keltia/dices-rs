@@ -41,12 +41,12 @@ itertools = "0.14"
 log = "0.4"
 nom = "7.1"
 rand = "0.9"
-rustyline = { version = "15.0", features = ["case_insensitive_history_search"] }
+rustyline = { version = "17.0", features = ["case_insensitive_history_search"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.9"
 stderrlog = "0.6"
 
 [dev-dependencies]
 assert_cmd = { version = "2.0", features = ["color", "color-auto"] }
-criterion = "0.5"
-rstest = "0.25"
+criterion = "0.7"
+rstest = "0.26"
