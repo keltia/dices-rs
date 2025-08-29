@@ -1,6 +1,6 @@
 [package]
 name = "dices-rs"
-version = "0.9.6"
+version = "0.9.7"
 authors = ["Ollivier Robert <roberto@keltia.net>"]
 description = "Small CLI utility to roll dices."
 edition = "2024"
@@ -43,7 +43,7 @@ nom = "7.1"
 rand = "0.9"
 rustyline = { version = "17.0", features = ["case_insensitive_history_search"] }
 serde = { version = "1.0", features = ["derive"] }
-serde_yaml = "0.9"
+serde_yml = "0.0"
 stderrlog = "0.6"
 
 [dev-dependencies]

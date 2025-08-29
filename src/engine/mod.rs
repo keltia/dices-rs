@@ -12,18 +12,18 @@
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 
-use eyre::{eyre, Result};
+use eyre::{Result, eyre};
 use itertools::Itertools;
 use log::{error, info, trace};
-use rustyline::{error::ReadlineError, DefaultEditor};
+use rustyline::{DefaultEditor, error::ReadlineError};
 use serde::{Deserialize, Serialize};
 
 use crate::compiler::{Action, Compiler};
 use crate::dice::result::Res;
 
 mod aliases;
-mod complete;
 mod cmd;
+mod complete;
 mod parse;
 
 pub use cmd::*;
@@ -183,18 +183,17 @@ impl Engine {
     ///
     pub fn list(&self) -> String {
         let cmds = self.cmds.keys().sorted();
-        cmds
-            .map(|k| {
-                let c = self.cmds.get(k).unwrap();
-                let tag = match c {
-                    Command::Alias { .. } => "alias",
-                    Command::Builtin { .. } => "builtin",
-                    Command::Macro { .. } => "macro",
-                    _ => "special",
-                };
-                format!("{tag}\t{k} = {c:?}")
-            })
-            .join("\n")
+        cmds.map(|k| {
+            let c = self.cmds.get(k).unwrap();
+            let tag = match c {
+                Command::Alias { .. } => "alias",
+                Command::Builtin { .. } => "builtin",
+                Command::Macro { .. } => "macro",
+                _ => "special",
+            };
+            format!("{tag}\t{k} = {c:?}")
+        })
+        .join("\n")
     }
 
     /// Returns all aliases
@@ -229,10 +228,10 @@ impl Engine {
     fn builtin_commands() -> Engine {
         trace!("builtin_commands(commands.yaml)");
         let all: HashMap<String, Command> =
-            serde_yaml::from_str(include_str!("../bin/dices/commands.yaml")).unwrap();
+            serde_yml::from_str(include_str!("../bin/dices/commands.yaml")).unwrap();
         Engine { cmds: all }
     }
-    
+
     pub fn build(&mut self) -> Self {
         self.clone()
     }
@@ -287,7 +286,7 @@ mod tests {
     #[test]
     fn test_engine_new() {
         let all: HashMap<String, Command> =
-            serde_yaml::from_str(include_str!("../../testdata/builtins.yaml")).unwrap();
+            serde_yml::from_str(include_str!("../../testdata/builtins.yaml")).unwrap();
 
         let n = Engine::new();
         all.into_iter().for_each(|(name, cmd)| {
@@ -306,7 +305,7 @@ mod tests {
         }];
 
         let all: HashMap<String, Command> =
-            serde_yaml::from_str(include_str!("../../testdata/merged.yaml")).unwrap();
+            serde_yml::from_str(include_str!("../../testdata/merged.yaml")).unwrap();
 
         let n = n.merge(doom);
 
