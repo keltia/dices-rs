@@ -31,11 +31,11 @@
 use std::fs;
 use std::path::PathBuf;
 
+use crate::{Command, Engine, parse_alias, parse_comment};
 use itertools::Itertools;
 use log::{debug, trace};
+use nom::Parser;
 use nom::branch::alt;
-
-use crate::{parse_alias, parse_comment, Command, Engine};
 
 impl Engine {
     /// Load aliases as a list of `Command`.
@@ -59,7 +59,8 @@ impl Engine {
                     let added: Vec<Command> = content
                         .lines()
                         .filter_map(|line| {
-                            let (_input, alias) = alt((parse_comment, parse_alias))(line).unwrap();
+                            let (_input, alias) =
+                                alt((parse_comment, parse_alias)).parse(line).unwrap();
                             // Look at what we got
                             //
                             match alias {
@@ -125,10 +126,10 @@ fn builtin_aliases() -> Vec<Command> {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use crate::engine::parse::parse_string;
     use std::collections::HashMap;
     use std::path::Path;
-    use crate::engine::parse::parse_string;
-    use super::*;
 
     #[test]
     fn test_parse_comment_sharp() {

@@ -5,15 +5,16 @@
 //!
 //! XXX If anyone add core commands, do not forget to document and test.
 
-use eyre::{eyre, Result};
+use eyre::{Result, eyre};
 use log::{debug, error, trace};
+use nom::Parser;
 use nom::{character::complete::space0, sequence::preceded};
 use serde::{Deserialize, Serialize};
 
 use crate::dice::{
+    Rollable,
     parse::{parse_open, parse_with_bonus},
     result::Res,
-    Rollable,
 };
 
 /// This describe the core commands in the rolling dice engine.
@@ -46,8 +47,8 @@ impl Cmd {
     pub fn execute(&self, input: &str) -> Result<Res> {
         trace!("cmd::execute");
         let r = match self {
-            Cmd::Dice => preceded(space0, parse_with_bonus)(input),
-            Cmd::Open => preceded(space0, parse_open)(input),
+            Cmd::Dice => preceded(space0, parse_with_bonus).parse(input),
+            Cmd::Open => preceded(space0, parse_open).parse(input),
             _ => return Err(eyre!("invalid Cmd")),
         };
         let ds = match r {

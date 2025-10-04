@@ -15,54 +15,57 @@
 use itertools::Itertools;
 use log::trace;
 use nom::{
-    character::complete::{i8, one_of, space0, u32, u8},
-    combinator::{map, opt},
+    IResult, Parser,
+    character::complete::{i8, one_of, space0, u8, u32},
+    combinator::{map_res, opt},
     multi::fold_many0,
     sequence::{pair, preceded},
-    IResult,
 };
+use std::num::ParseIntError;
+use std::string::ParseError;
 
 use crate::dice::{Dice, DiceSet};
 
 #[inline]
 pub fn parse_dice(input: &str) -> IResult<&str, Dice> {
-    let into_dice = |s: u32| Dice::Regular(s as usize);
-    let r = preceded(one_of("dD"), u32);
-    map(r, into_dice)(input)
+    let into_dice = |s: u32| -> Result<Dice, ParseIntError> { Ok(Dice::Regular(s as usize)) };
+    map_res(preceded(one_of("dD"), u32), into_dice).parse(input)
 }
 
 #[inline]
 pub fn parse_open(input: &str) -> IResult<&str, DiceSet> {
-    let into_dice = |s: u32| DiceSet::from(Dice::Open(s as usize));
-    let r = preceded(one_of("dD"), u32);
-    map(r, into_dice)(input)
+    let into_dice =
+        |s: u32| -> Result<DiceSet, ParseError> { Ok(DiceSet::from(Dice::Open(s as usize))) };
+    map_res(preceded(one_of("dD"), u32), into_dice).parse(input)
 }
 
 #[inline]
 fn parse_ndices(input: &str) -> IResult<&str, DiceSet> {
-    let into_set = |(n, d): (Option<std::primitive::u8>, Dice)| {
+    let into_set = |(n, d): (Option<std::primitive::u8>, Dice)| -> Result<DiceSet, ParseError> {
         let n = n.unwrap_or(1);
         let v: Vec<Dice> = (1..=n).map(|_| d).collect();
-        DiceSet::from_vec(v)
+        Ok(DiceSet::from_vec(v))
     };
-    let r = pair(opt(u8), parse_dice);
-    map(r, into_set)(input)
+    map_res(pair(opt(u8), parse_dice), into_set).parse(input)
 }
 
 #[inline]
 fn parse_bonus(input: &str) -> IResult<&str, std::primitive::i8> {
-    let get_sign = |(s, n): (char, i8)| match s {
-        '-' => -n,
-        '+' => n,
-        _ => 0,
+    let get_sign = |(s, n): (char, i8)| -> Result<i8, ParseError> {
+        Ok(match s {
+            '-' => -n,
+            '+' => n,
+            _ => 0,
+        })
     };
-    let r = pair(one_of("+-"), i8);
-    map(r, get_sign)(input)
+    map_res(pair(one_of("+-"), i8), get_sign).parse(input)
 }
 
 #[inline]
 fn parse_nbonus(input: &str) -> IResult<&str, std::primitive::i8> {
-    let sum = |v: Vec<std::primitive::i8>| v.iter().sum1().unwrap_or(0);
+    let sum = |v: Vec<std::primitive::i8>| -> Result<i8, ParseIntError> {
+        Ok(v.iter().sum1().unwrap_or(0))
+    };
     let r = fold_many0(
         preceded(space0, parse_bonus),
         Vec::new,
@@ -71,28 +74,26 @@ fn parse_nbonus(input: &str) -> IResult<&str, std::primitive::i8> {
             acc
         },
     );
-    map(r, sum)(input)
+    map_res(r, sum).parse(input)
 }
 
 /// Extracted from parse_with_bonus
 ///
 #[inline]
-fn add_bonus((mut ds, b): (DiceSet, std::primitive::i8)) -> DiceSet {
+fn add_bonus((mut ds, b): (DiceSet, std::primitive::i8)) -> Result<DiceSet, ParseError> {
     trace!("{ds:?}, {b:?}");
     if b != 0 {
         ds.0.push(Dice::Bonus(b.into()))
     };
-    ds
+    Ok(ds)
 }
 
 pub fn parse_open_bonus(input: &str) -> IResult<&str, DiceSet> {
-    let r = pair(parse_open, parse_nbonus);
-    map(r, add_bonus)(input)
+    map_res(pair(parse_open, parse_nbonus), add_bonus).parse(input)
 }
 
 pub fn parse_with_bonus(input: &str) -> IResult<&str, DiceSet> {
-    let r = pair(parse_ndices, parse_nbonus);
-    map(r, add_bonus)(input)
+    map_res(pair(parse_ndices, parse_nbonus), add_bonus).parse(input)
 }
 
 #[cfg(test)]
@@ -169,6 +170,8 @@ mod tests {
     #[case(DiceSet(vec ! [Dice::Regular(4)]), - 2, DiceSet(vec ! [Dice::Regular(4), Dice::Bonus(- 2)]))]
     fn test_add_bonus(#[case] input: DiceSet, #[case] bonus: i8, #[case] out: DiceSet) {
         let ds = add_bonus((input, bonus));
+        assert!(ds.is_ok());
+        let ds = ds.unwrap();
         assert_eq!(out, ds);
     }
 }
