@@ -6,6 +6,8 @@
 use std::fmt::{Display, Formatter};
 use std::ops::Add;
 
+use colored::*;
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Special {
     None,
@@ -17,7 +19,7 @@ pub enum Special {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Res {
     /// Store all the rolled dices
-    pub list: Vec<usize>,
+    pub list: Vec<isize>,
     /// Sum of all dices
     pub sum: isize,
     /// If there is a malus/bonus to apply
@@ -36,10 +38,23 @@ impl Default for Res {
 /// Display trait
 impl Display for Res {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let list = self.list.iter().map(|s| s.to_string()).collect::<Vec<_>>().join(", ");
+        let special = match self.flag {
+            Special::Fumble => " (Fumble!)".red().bold(),
+            Special::Natural => " (Natural!)".green().bold(),
+            Special::None => "".normal(),
+        };
         write!(
             f,
-            "total: {} - incl. bonus: {} ({:?})",
-            self.sum, self.bonus, self.flag
+            "{} = [{}]{}{}",
+            self.sum.to_string().cyan().bold(),
+            list,
+            if self.bonus != 0 {
+                format!(" ({})", if self.bonus > 0 { format!("+{}", self.bonus) } else { self.bonus.to_string() })
+            } else {
+                "".to_string()
+            },
+            special
         )
     }
 }
@@ -60,9 +75,9 @@ impl Res {
 
     /// Add one result to a set
     ///
-    pub fn append(&mut self, v: usize) -> &mut Self {
+    pub fn append(&mut self, v: isize) -> &mut Self {
         self.list.push(v);
-        self.sum += v as isize;
+        self.sum += v;
         self
     }
 

@@ -3,19 +3,21 @@ use std::path::PathBuf;
 use eyre::{eyre, Result};
 use clap::Parser;
 use directories::BaseDirs;
-use log::trace;
+use log::{info, trace};
 use rustyline::{
-    config::BellStyle::Visible, CompletionType::List, Config, DefaultEditor, EditMode,
+    config::BellStyle::Visible, CompletionType::List, Config, Editor, EditMode,
 };
 use stderrlog::LogLevelNum::{Debug, Info, Trace};
 
 use crate::cli::Opts;
 use crate::version::version;
 
-use dices_rs::Engine;
+use dices_rs::{complete::DiceCompleter, Engine};
 
 mod cli;
 mod version;
+
+use colored::*;
 
 const BASE_DIR: &str = ".config";
 const ALIASES_FILE: &str = "aliases";
@@ -67,7 +69,21 @@ fn main() -> Result<()> {
         .bell_style(Visible)
         .edit_mode(EditMode::Emacs)
         .build();
-    let mut repl = DefaultEditor::with_config(cfg)?;
+
+    // Create a new engine with all builtin commands
+    //
+    trace!("Create engine...");
+    let mut alias_path = def_alias;
+    if let Some(fname) = opts.alias_file {
+        alias_path = PathBuf::from(fname);
+    }
+    let mut commands = Engine::new().with(Some(alias_path)).build();
+
+    let h = DiceCompleter {
+        commands: commands.cmds.clone(),
+    };
+    let mut repl = Editor::with_config(cfg)?;
+    repl.set_helper(Some(h));
 
     // Load history if there is one
     //
@@ -76,18 +92,30 @@ fn main() -> Result<()> {
         repl.load_history(&hist)?;
     }
 
-    // Check whether we supplied an alias file on CLI, if not just load out default one
-    //
-    trace!("Check for aliases...");
-    let alias = match opts.alias_file {
-        Some(fname) => Some(PathBuf::from(fname)),
-        _ => Some(def_alias),
-    };
-
-    // Create a new engine with all builtin commands
-    //
-    trace!("Create engine...");
-    let mut commands = Engine::new().with(alias).build();
+    // Non-interactive mode
+    if !opts.commands.is_empty() {
+        let cc = dices_rs::compiler::Compiler::new(&commands.cmds);
+        for line in opts.commands {
+            let action = cc.compile(&line);
+            match action {
+                dices_rs::compiler::Action::Execute(cmd, input) => {
+                    match cmd.execute(&input) {
+                        Ok(res) => println!("{}", res),
+                        Err(e) => eprintln!("{}: {}", "Error".red().bold(), e),
+                    }
+                }
+                dices_rs::compiler::Action::Exit => break,
+                dices_rs::compiler::Action::Error(e) => {
+                    eprintln!("{}: {}", "Error".red().bold(), e);
+                }
+                _ => {
+                    // Other actions (List, Aliases, Macros) could be implemented too
+                    info!("Action {:?} not supported in non-interactive mode", action);
+                }
+            }
+        }
+        return Ok(());
+    }
 
     println!("Available commands:\n{}\n", commands.list());
 

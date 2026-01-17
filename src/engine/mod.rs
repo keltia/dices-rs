@@ -14,16 +14,18 @@ use std::fmt::{Debug, Formatter};
 
 use eyre::{Result, eyre};
 use itertools::Itertools;
-use log::{error, info, trace};
-use rustyline::{DefaultEditor, error::ReadlineError};
+use log::{error, trace};
+use rustyline::{Editor, error::ReadlineError};
 use serde::{Deserialize, Serialize};
+use colored::*;
+use strsim::levenshtein;
 
 use crate::compiler::{Action, Compiler};
 use crate::dice::result::Res;
 
 mod aliases;
 mod cmd;
-mod complete;
+pub mod complete;
 mod parse;
 
 pub use cmd::*;
@@ -68,8 +70,6 @@ impl Command {
     }
 }
 
-const PS1: &str = "Dices> ";
-
 /// Core engine that manages commands and their execution.
 ///
 /// The Engine struct maintains a collection of all available commands
@@ -91,39 +91,45 @@ impl Engine {
         Self::builtin_commands()
     }
 
-    /// Main loop here, refactored from `main()`.
+    /// Run the engine in REPL mode
     ///
-    pub fn run(&mut self, repl: &mut DefaultEditor) -> Result<()> {
+    pub fn run(&mut self, repl: &mut Editor<complete::DiceCompleter, rustyline::history::FileHistory>) -> Result<()> {
         let cc = Compiler::new(&self.cmds);
 
         trace!("Start our input loop");
         loop {
             // Get next line
             //
-            let line = match repl.readline(PS1) {
+            let line = match repl.readline(">> ") {
                 Ok(line) => line,
                 Err(ReadlineError::Interrupted) => break,
+                Err(ReadlineError::Eof) => break,
                 Err(e) => {
                     error!("{:?}", e);
                     break;
                 }
             };
 
+            let line = line.trim();
+            if line.is_empty() {
+                continue;
+            }
+
             trace!("{}", line);
 
             // Save it
             //
-            repl.add_history_entry(line.as_str())?;
+            repl.add_history_entry(line)?;
 
             // Some actions have to be executed here because they do not involve the "core" dice-related
             // commands and interact with the interactive shell like `exit` and `list`
             //
-            let action = cc.compile(&line);
+            let action = cc.compile(line);
 
             // Now do something with this output of the compiler
             //
             trace!("got ({action:?} as output");
-            let res = match action {
+            match action {
                 Action::Exit => break,
                 Action::List => {
                     println!("{}", self.list());
@@ -142,15 +148,30 @@ impl Engine {
                 Action::Execute(cmd, input) => {
                     trace!("exec={:?}", cmd);
 
-                    let res = cmd.execute(&input);
-                    res
+                    match cmd.execute(&input) {
+                        Ok(res) => {
+                            println!("{}", res);
+                        }
+                        Err(e) => {
+                            eprintln!("{}: {}", "Error".red().bold(), e);
+                        }
+                    }
                 }
-                Action::Error(s) => Err(eyre!("impossible action: {}", s)),
+                Action::Error(e) => {
+                    eprintln!("{}: {}", "Error".red().bold(), e);
+                    // Suggest similar commands
+                    let words: Vec<_> = line.split_whitespace().collect();
+                    if !words.is_empty() {
+                        let cmd_name = words[0];
+                        let suggestions: Vec<_> = self.cmds.keys()
+                            .filter(|name| levenshtein(name, cmd_name) <= 2)
+                            .collect();
+                        if !suggestions.is_empty() {
+                            println!("Did you mean: {}?", suggestions.iter().join(", ").yellow());
+                        }
+                    }
+                }
             };
-            match res {
-                Ok(res) => info!("roll = {:?}", res),
-                Err(e) => error!("{}", e.to_string()),
-            }
         }
         Ok(())
     }
@@ -186,12 +207,12 @@ impl Engine {
         cmds.map(|k| {
             let c = self.cmds.get(k).unwrap();
             let tag = match c {
-                Command::Alias { .. } => "alias",
-                Command::Builtin { .. } => "builtin",
-                Command::Macro { .. } => "macro",
-                _ => "special",
+                Command::Alias { .. } => "alias ".blue(),
+                Command::Builtin { .. } => "builtin".green(),
+                Command::Macro { .. } => "macro ".magenta(),
+                _ => "special".yellow(),
             };
-            format!("{tag}\t{k} = {c:?}")
+            format!("{tag}\t{}", k.bold())
         })
         .join("\n")
     }
@@ -201,11 +222,11 @@ impl Engine {
     pub fn aliases(&self) -> String {
         self.cmds
             .iter()
-            .filter_map(|(_name, cmd, ..)| match cmd {
+            .filter_map(|(_name, cmd)| match cmd {
                 Command::Alias { name, cmd } => Some((name.to_owned(), cmd)),
                 _ => None,
             })
-            .map(|(n, c)| format!("alias \t{n} = {c}"))
+            .map(|(n, c)| format!("{} \t{n} = {c}", "alias".blue()))
             .join("\n")
     }
 
@@ -218,7 +239,7 @@ impl Engine {
                 Command::Macro { name, cmd } => Some((name.to_owned(), cmd)),
                 _ => None,
             })
-            .map(|(n, c)| format!("macro \t{n} = {c}"))
+            .map(|(n, c)| format!("{} \t{n} = {c}", "macro".magenta()))
             .join("\n")
     }
 
@@ -228,7 +249,7 @@ impl Engine {
     fn builtin_commands() -> Engine {
         trace!("builtin_commands(commands.yaml)");
         let all: HashMap<String, Command> =
-            serde_yml::from_str(include_str!("../bin/dices/commands.yaml")).unwrap();
+            serde_yml::from_str(include_str!("../bin/dices/commands.yaml")).expect("Invalid commands.yaml");
         Engine { cmds: all }
     }
 
