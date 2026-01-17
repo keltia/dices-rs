@@ -16,5 +16,11 @@ move:
 build:
 	cargo build
 
-install: build
+test:
+	cargo nextest run
+
+build-release:
+	cargo build --release
+
+install: build-release
 	cargo install --path .
