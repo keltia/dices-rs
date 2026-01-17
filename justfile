@@ -12,3 +12,9 @@ push: push-github
 # Move changes to develop
 move:
     jj b move -t '@-' develop
+
+build:
+	cargo build
+
+install: build
+	cargo install --path .
