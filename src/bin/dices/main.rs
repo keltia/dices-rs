@@ -1,18 +1,16 @@
 use std::path::PathBuf;
 
-use eyre::{eyre, Result};
 use clap::Parser;
 use directories::BaseDirs;
+use eyre::{Result, eyre};
 use log::{info, trace};
-use rustyline::{
-    config::BellStyle::Visible, CompletionType::List, Config, Editor, EditMode,
-};
+use rustyline::{CompletionType::List, Config, EditMode, Editor, config::BellStyle::Visible};
 use stderrlog::LogLevelNum::{Debug, Info, Trace};
 
 use crate::cli::Opts;
 use crate::version::version;
 
-use dices_rs::{complete::DiceCompleter, Engine};
+use dices_rs::{Engine, complete::DiceCompleter};
 
 mod cli;
 mod version;
@@ -31,7 +29,7 @@ fn main() -> Result<()> {
     let base = BaseDirs::new().unwrap();
     let home = base.home_dir();
     let hist = home.join(BASE_DIR).join("dices").join(HISTORY_FILE);
-    let def_alias= home.join(BASE_DIR).join("dices").join(ALIASES_FILE);
+    let def_alias = home.join(BASE_DIR).join("dices").join(ALIASES_FILE);
 
     // Add banner
     //
@@ -77,8 +75,8 @@ fn main() -> Result<()> {
     if let Some(fname) = opts.alias_file {
         alias_path = PathBuf::from(fname);
     }
-    let mut commands = Engine::new().with(Some(alias_path)).build();
-
+    let mut commands = Engine::new().with(Some(alias_path.clone())).build();
+    println!("{} loaded.\n", alias_path.display());
     let h = DiceCompleter {
         commands: commands.cmds.clone(),
     };
@@ -98,12 +96,10 @@ fn main() -> Result<()> {
         for line in opts.commands {
             let action = cc.compile(&line);
             match action {
-                dices_rs::compiler::Action::Execute(cmd, input) => {
-                    match cmd.execute(&input) {
-                        Ok(res) => println!("{}", res),
-                        Err(e) => eprintln!("{}: {}", "Error".red().bold(), e),
-                    }
-                }
+                dices_rs::compiler::Action::Execute(cmd, input) => match cmd.execute(&input) {
+                    Ok(res) => println!("{}", res),
+                    Err(e) => eprintln!("{}: {}", "Error".red().bold(), e),
+                },
                 dices_rs::compiler::Action::Exit => break,
                 dices_rs::compiler::Action::Error(e) => {
                     eprintln!("{}: {}", "Error".red().bold(), e);
