@@ -15,7 +15,7 @@ use rand::Rng;
 
 
 /// Head or Tail?
-#[cfg(feature = "loop")]
+#[cfg(not(feature = "rng"))]
 fn biased_dice(p: f64) -> bool { 
     let mut rng = rand::rng();
 
