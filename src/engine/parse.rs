@@ -3,9 +3,9 @@ use nom::{
     IResult, Parser,
     branch::alt,
     bytes::complete::{is_not, tag, take_till},
-    character::complete::{alphanumeric1, char, one_of, space0, space1},
-    combinator::map_res,
-    sequence::{delimited, preceded, separated_pair, terminated},
+    character::complete::{alphanumeric1, char, one_of, space0},
+    combinator::{map, map_res, opt},
+    sequence::{delimited, preceded, separated_pair},
 };
 use std::string::ParseError;
 
@@ -15,12 +15,11 @@ use crate::engine::Command;
 ///
 pub fn parse_comment(input: &str) -> IResult<&str, Command> {
     trace!("parse_comment");
-    let ret_comment = |_s: &str| -> Result<Command, ParseError> { Ok(Command::Comment) };
-    let r = terminated(
+    let r = preceded(
         alt((tag("#"), tag("//"), tag("!"))),
-        preceded(space1, is_not("\r\n")),
+        opt(preceded(space0, is_not("\r\n"))),
     );
-    map_res(r, ret_comment).parse(input)
+    map(r, |_| Command::Comment).parse(input)
 }
 
 /// Parse a line, return a Command::Macro that will be interpreted above as existing (alias) or

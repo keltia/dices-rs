@@ -155,6 +155,13 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_comment_sharp_no_space() {
+        let c = parse_comment("#comment").unwrap();
+        assert_eq!("", c.0);
+        assert_eq!(Command::Comment, c.1);
+    }
+
+    #[test]
     fn test_parse_comment_c() {
         let c = parse_comment("// this is a comment").unwrap();
         assert_eq!("", c.0);
