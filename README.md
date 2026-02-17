@@ -7,8 +7,8 @@
 main:  [![main](https://github.com/keltia/dices-rs/actions/workflows/rust.yml/badge.svg)](https://github.com/keltia/dices-rs/actions/workflows/rust.yml)
 develop:  [![develop](https://github.com/keltia/dices-rs/actions/workflows/develop.yml/badge.svg)](https://github.com/keltia/dices-rs/actions/workflows/develop.yml)
 [![dependency status](https://deps.rs/repo/github/keltia/dices-rs/status.svg)](https://deps.rs/repo/github/keltia/dices-rs)
-[![Docs](https://img.shields.io/docsrs/dmarc-rs)](https://docs.rs/dices-rs)
-[![GitHub release](https://img.shields.io/github/release/keltia/dmarc-rs.svg)](https://github.com/keltia/dices-rs/releases/)
+[![Docs](https://img.shields.io/docsrs/dices-rs)](https://docs.rs/dices-rs)
+[![GitHub release](https://img.shields.io/github/release/keltia/dices-rs.svg)](https://github.com/keltia/dices-rs/releases/)
 [![GitHub issues](https://img.shields.io/github/issues/keltia/dices-rs.svg)](https://github.com/keltia/dices-rs/issues)
 [![dices-rs: 1.56+]][Rust 1.56]
 [![SemVer](https://img.shields.io/badge/semver-2.0.0-blue)](https://semver.org/spec/v2.0.0.html)
