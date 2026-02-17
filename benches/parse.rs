@@ -38,7 +38,6 @@
 //! ```
 
 use criterion::{Criterion, criterion_group, criterion_main};
-use log::debug;
 
 use dices_rs::dice::parse::parse_with_bonus;
 use dices_rs::dice::{Dice, DiceSet};
