@@ -52,7 +52,10 @@ impl Cmd {
             _ => return Err(eyre!("invalid Cmd")),
         };
         let ds = match r {
-            Ok((_input, ds)) => {
+            Ok((input, ds)) => {
+                if !input.trim().is_empty() {
+                    return Err(eyre!("error parsing input"));
+                }
                 debug!("{:?}", ds);
                 ds
             }

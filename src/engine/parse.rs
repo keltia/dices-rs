@@ -2,8 +2,8 @@ use log::trace;
 use nom::{
     IResult, Parser,
     branch::alt,
-    bytes::complete::{is_not, tag},
-    character::complete::{alpha1, one_of, space0, space1},
+    bytes::complete::{is_not, tag, take_till},
+    character::complete::{alphanumeric1, char, one_of, space0, space1},
     combinator::map_res,
     sequence::{delimited, preceded, separated_pair, terminated},
 };
@@ -37,9 +37,9 @@ pub fn parse_alias(input: &str) -> IResult<&str, Command> {
         })
     };
     let r = separated_pair(
-        alpha1,
+        alphanumeric1,
         delimited(space0, tag("="), space0),
-        alt((parse_string, alpha1)),
+        alt((parse_string, alphanumeric1)),
     );
     map_res(r, check).parse(input)
 }
@@ -48,5 +48,8 @@ pub fn parse_alias(input: &str) -> IResult<&str, Command> {
 ///
 pub fn parse_string(input: &str) -> IResult<&str, &str> {
     trace!("parse_string");
-    delimited(one_of("\"'"), is_not("\""), one_of("\"'")).parse(input)
+    let (input, quote) = one_of("\"'")(input)?;
+    let (input, content) = take_till(|c| c == quote)(input)?;
+    let (input, _) = char(quote)(input)?;
+    Ok((input, content))
 }

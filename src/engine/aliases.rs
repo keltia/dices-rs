@@ -59,8 +59,24 @@ impl Engine {
                     let added: Vec<Command> = content
                         .lines()
                         .filter_map(|line| {
-                            let (_input, alias) =
-                                alt((parse_comment, parse_alias)).parse(line).unwrap();
+                            let line = line.trim();
+                            if line.is_empty() {
+                                return None;
+                            }
+
+                            let parsed = alt((parse_comment, parse_alias)).parse(line);
+                            let (rest, alias) = match parsed {
+                                Ok((rest, alias)) => (rest, alias),
+                                Err(e) => {
+                                    debug!("Skipping invalid alias line '{line}': {e:?}");
+                                    return None;
+                                }
+                            };
+                            if !rest.trim().is_empty() {
+                                debug!("Skipping alias line with trailing garbage '{line}'");
+                                return None;
+                            }
+
                             // Look at what we got
                             //
                             match alias {
@@ -206,6 +222,13 @@ mod tests {
                 Command::Alias {
                     name: "quit".to_string(),
                     cmd: "exit".to_string(),
+                },
+            ),
+            (
+                "llist".to_string(),
+                Command::Alias {
+                    name: "llist".to_string(),
+                    cmd: "list".to_string(),
                 },
             ),
             ("aliases".to_string(), Command::Aliases),

@@ -121,7 +121,6 @@ mod tests {
     #[case("D6 +2", DiceSet::from_vec(vec ! [Dice::Regular(6), Dice::Bonus(2)]))]
     #[case("D6 +2 +1", DiceSet::from_vec(vec ! [Dice::Regular(6), Dice::Bonus(3)]))]
     #[case("d4 +1", DiceSet::from_vec(vec ! [Dice::Regular(4), Dice::Bonus(1)]))]
-    #[case("D6 =2", DiceSet::from_vec(vec ! [Dice::Regular(6)]))]
     #[case("3D6", DiceSet::from_vec(vec ! [Dice::Regular(6), Dice::Regular(6), Dice::Regular(6)]))]
     #[case("3D6 -2", DiceSet::from_vec(vec ! [Dice::Regular(6), Dice::Regular(6), Dice::Regular(6), Dice::Bonus(- 2)]))]
     fn test_parse_with_bonus(#[case] input: &str, #[case] res: DiceSet) {
