@@ -1,9 +1,9 @@
 //! Benchmark the two RNG toll, the old one and `thread_rng`.
 //!
 
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use rand;
-use rand::Rng;
+use rand::RngExt;
 
 /// Head or Tail?
 fn biased_dice(p: f64) -> bool {
