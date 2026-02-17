@@ -13,7 +13,7 @@
 //! 4. Generation of an Action enum representing the command
 //!
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use eyre::{eyre, bail, Result};
 use log::trace;
@@ -48,21 +48,21 @@ pub enum Action {
 /// - Compile input into executable Actions
 ///
 #[derive(Debug)]
-pub struct Compiler {
+pub struct Compiler<'a> {
     /// List of all available commands
-    cmds: HashMap<String, Command>,
+    cmds: &'a HashMap<String, Command>,
 }
 
-impl Compiler {
+impl<'a> Compiler<'a> {
     /// Max depth we allow for recursion
     ///
-    pub const MAX_RECUR: usize = 5;
+    pub const MAX_RECUR: usize = 10;
 
     /// Instantiate a new compiler with allowed commands
     ///
-    pub fn new(cmds: &HashMap<String, Command>) -> Self {
-        trace!("create compiler with({:?})", cmds);
-        Self { cmds: cmds.clone() }
+    pub fn new(cmds: &'a HashMap<String, Command>) -> Self {
+        trace!("create compiler");
+        Self { cmds }
     }
 
     /// We have the initial analysis of the input, resolve it into something we do know or
@@ -71,11 +71,12 @@ impl Compiler {
     pub fn compile(&self, input: &str) -> Action {
         trace!("in compile({input})");
 
+        let mut seen = HashSet::new();
         // Go directly into `recurse()`
         //
-        let (input, cmd) = match self.recurse(input, None) {
+        let (input, cmd) = match self.recurse(input, None, &mut seen) {
             Ok((input, cmd)) => (input, cmd),
-            Err(_) => return Action::Error("unknown command".to_string()),
+            Err(e) => return Action::Error(e.to_string()),
         };
 
         trace!("cmd={:?}", cmd);
@@ -140,7 +141,7 @@ impl Compiler {
     /// This is a tail recursive function, might be turned into an iterative one at some point
     /// Not sure it is worth it.
     ///
-    fn recurse(&self, input: &str, max: Option<usize>) -> Result<(String, Command)> {
+    fn recurse(&self, input: &str, max: Option<usize>, seen: &mut HashSet<String>) -> Result<(String, Command)> {
         trace!("in compiler::recurse({max:?})={:?}", input);
 
         // Set default recursion max
@@ -148,6 +149,20 @@ impl Compiler {
         let mut max = max.unwrap_or(Compiler::MAX_RECUR);
 
         let (input, command) = self.parse(input)?;
+
+        // Cycle detection
+        let name = match &command {
+            Command::Alias { name, .. } | Command::Macro { name, .. } => name.clone(),
+            _ => "".to_string(),
+        };
+
+        if !name.is_empty() {
+            if seen.contains(&name) {
+                bail!("recursion cycle detected for command: {}", name);
+            }
+            seen.insert(name);
+        }
+
         let input = match command {
             // The end, we are at the Builtin level
             //
@@ -184,7 +199,7 @@ impl Compiler {
             return Err(eyre!("max recursion level reached for {}", input));
         }
         trace!("recurse(input)={input} max={max}");
-        self.recurse(&input, Some(max))
+        self.recurse(&input, Some(max), seen)
     }
 }
 

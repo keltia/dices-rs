@@ -15,4 +15,6 @@ pub struct Opts {
     /// Display utility full version.
     #[clap(short = 'V', long)]
     pub version: bool,
+    /// Commands to execute (non-interactive mode)
+    pub commands: Vec<String>,
 }

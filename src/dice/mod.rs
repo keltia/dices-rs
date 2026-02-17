@@ -40,6 +40,7 @@
 //! ```
 
 use log::trace;
+use std::fmt::{Display, Formatter};
 
 pub use internal::internal_roll;
 use parse::parse_with_bonus;
@@ -67,8 +68,28 @@ pub enum Dice {
     Open(usize),
     /// Your regular type of dice
     Regular(usize),
+    /// Fate/Fudge dice (-1, 0, 1)
+    Fate,
     /// Used to register any bonus, same as a Regular but easier to spot
     Bonus(isize),
+}
+
+impl Display for Dice {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Dice::Constant(s) => write!(f, "{}", s),
+            Dice::Open(s) => write!(f, "d{}!", s),
+            Dice::Regular(s) => write!(f, "d{}", s),
+            Dice::Fate => write!(f, "dF"),
+            Dice::Bonus(s) => {
+                if *s >= 0 {
+                    write!(f, "+{}", s)
+                } else {
+                    write!(f, "{}", s)
+                }
+            }
+        }
+    }
 }
 
 /// Implement the dice methods
@@ -79,7 +100,7 @@ impl Dice {
     pub fn size(self) -> usize {
         match self {
             Dice::Constant(s) | Dice::Regular(s) | Dice::Open(s) => s,
-            Dice::Bonus(_) => 0,
+            Dice::Bonus(_) | Dice::Fate => 0,
         }
     }
 }
@@ -94,7 +115,7 @@ impl Rollable for Dice {
             Dice::Constant(s) => {
                 trace!("dice::constant({s})");
 
-                res.append(s)
+                res.append(s as isize)
             }
             Dice::Regular(s) => {
                 trace!("dice::regular({s})");
@@ -113,7 +134,7 @@ impl Rollable for Dice {
                         }
                     }
                 };
-                res.append(rr.0).set(rr.1)
+                res.append(rr.0 as isize).set(rr.1)
             }
             Dice::Open(s) => {
                 trace!("dice::open({s})");
@@ -123,7 +144,7 @@ impl Rollable for Dice {
                 let mut first = true;
                 loop {
                     let rr = internal_roll(s);
-                    res.append(rr);
+                    res.append(rr as isize);
                     // Check for first roll only: fumble on a 1
                     //
                     if first && rr == 1 {
@@ -147,6 +168,11 @@ impl Rollable for Dice {
                 res.bonus = s;
                 &mut res
             }
+            Dice::Fate => {
+                trace!("dice::fate");
+                let roll = internal_roll(3) as isize - 2;
+                res.append(roll)
+            }
         };
         trace!("final r={r:?}");
         r.clone()
@@ -157,6 +183,20 @@ impl Rollable for Dice {
 ///
 #[derive(Clone, Debug, PartialEq)]
 pub struct DiceSet(Vec<Dice>);
+
+impl Display for DiceSet {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let mut first = true;
+        for d in &self.0 {
+            if !first && !matches!(d, Dice::Bonus(_)) {
+                write!(f, " ")?;
+            }
+            write!(f, "{}", d)?;
+            first = false;
+        }
+        Ok(())
+    }
+}
 
 /// a Dice set
 ///
@@ -349,6 +389,16 @@ mod tests {
 
         assert_eq!(1, r.bonus);
         assert_eq!(3, r.list.len())
+    }
+
+    #[test]
+    fn test_special_flag_preserved_single_die_with_bonus() {
+        let rf = DiceSet(vec![Dice::Regular(1), Dice::Bonus(2)]);
+        let r = rf.roll();
+
+        assert_eq!(Special::Fumble, r.flag);
+        assert_eq!(1, r.list.len());
+        assert_eq!(2, r.bonus);
     }
 
     #[rstest]
