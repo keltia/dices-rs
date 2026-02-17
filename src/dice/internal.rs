@@ -11,7 +11,7 @@
 //!
 
 /// Include the [rand] family
-use rand::Rng;
+use rand::RngExt;
 
 
 /// Head or Tail?
