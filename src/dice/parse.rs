@@ -17,7 +17,7 @@ use log::trace;
 use nom::{
     IResult, Parser,
     character::complete::{i8, one_of, space0, u8, u32},
-    combinator::{map_res, opt},
+    combinator::{map_res, opt, verify},
     multi::fold_many0,
     sequence::{pair, preceded},
 };
@@ -29,14 +29,14 @@ use crate::dice::{Dice, DiceSet};
 #[inline]
 pub fn parse_dice(input: &str) -> IResult<&str, Dice> {
     let into_dice = |s: u32| -> Result<Dice, ParseIntError> { Ok(Dice::Regular(s as usize)) };
-    map_res(preceded(one_of("dD"), u32), into_dice).parse(input)
+    map_res(preceded(one_of("dD"), verify(u32, |s| *s > 0)), into_dice).parse(input)
 }
 
 #[inline]
 pub fn parse_open(input: &str) -> IResult<&str, DiceSet> {
     let into_dice =
         |s: u32| -> Result<DiceSet, ParseError> { Ok(DiceSet::from(Dice::Open(s as usize))) };
-    map_res(preceded(one_of("dD"), u32), into_dice).parse(input)
+    map_res(preceded(one_of("dD"), verify(u32, |s| *s > 0)), into_dice).parse(input)
 }
 
 #[inline]
@@ -116,6 +116,12 @@ mod tests {
         assert_eq!(res, r.1);
     }
 
+    #[test]
+    fn test_parse_dice_zero() {
+        let r = parse_ndices("D0");
+        assert!(r.is_err());
+    }
+
     #[rstest]
     #[case("D1", DiceSet::from_vec(vec ! [Dice::Regular(1)]))]
     #[case("D6 +2", DiceSet::from_vec(vec ! [Dice::Regular(6), Dice::Bonus(2)]))]
@@ -138,6 +144,12 @@ mod tests {
         assert!(r.is_ok());
         let r = r.unwrap();
         assert_eq!(res, r.1);
+    }
+
+    #[test]
+    fn test_parse_open_zero() {
+        let r = parse_open("D0");
+        assert!(r.is_err());
     }
 
     #[rstest]
