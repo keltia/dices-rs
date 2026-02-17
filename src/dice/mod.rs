@@ -120,12 +120,13 @@ impl Rollable for Dice {
 
                 // While roll is size
                 //
+                let mut first = true;
                 loop {
                     let rr = internal_roll(s);
                     res.append(rr);
-                    // Check for first roll only
+                    // Check for first roll only: fumble on a 1
                     //
-                    if rr == s && res.sum == 1 {
+                    if first && rr == 1 {
                         trace!("fumble");
                         res.set(Special::Fumble);
                         break;
@@ -135,6 +136,7 @@ impl Rollable for Dice {
                     if rr != s {
                         break;
                     }
+                    first = false;
                 }
                 &mut res
             }
@@ -179,7 +181,13 @@ impl DiceSet {
     ///
     pub fn parse(s: &str) -> Result<Self, String> {
         match parse_with_bonus(s) {
-            Ok((_, ds)) => Ok(ds),
+            Ok((rest, ds)) => {
+                if rest.trim().is_empty() {
+                    Ok(ds)
+                } else {
+                    Err("error parsing input".to_string())
+                }
+            }
             Err(e) => Err(e.to_string()),
         }
     }
@@ -197,18 +205,20 @@ impl Rollable for DiceSet {
     /// Get all Res and sum them
     ///
     fn roll(&self) -> Res {
-        let res = self
-            .0
+        let rolls: Vec<Res> = self.0.iter().map(|d| d.roll()).collect();
+
+        let mut res = rolls
             .iter()
-            .map(|d| {
-                let r = d.roll();
-                let f = r.flag();
-                (r, f)
-            })
-            .fold(Res::new(), |acc, (r, f)| {
-                let mut s = r;
-                acc + s.set(f).clone()
-            });
+            .cloned()
+            .fold(Res::new(), |acc, mut r| acc + r.set(r.flag()).clone());
+
+        // Preserve special flag only when exactly one die was rolled (bonus does not count).
+        if res.list.len() == 1 {
+            if let Some(r) = rolls.iter().find(|r| r.list.len() == 1) {
+                res.flag = r.flag();
+            }
+        }
+
         res
     }
 }
