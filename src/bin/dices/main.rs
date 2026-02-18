@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use clap::Parser;
+use colored::*;
 use directories::BaseDirs;
 use eyre::{Result, eyre};
 use log::{info, trace};
@@ -10,12 +11,14 @@ use stderrlog::LogLevelNum::{Debug, Info, Trace};
 use crate::cli::Opts;
 use crate::version::version;
 
-use dices_rs::{Engine, complete::DiceCompleter};
+use dices_rs::{
+    Engine,
+    compiler::{Action, Compiler},
+    complete::DiceCompleter,
+};
 
 mod cli;
 mod version;
-
-use colored::*;
 
 const BASE_DIR: &str = ".config";
 const ALIASES_FILE: &str = "aliases";
@@ -92,16 +95,16 @@ fn main() -> Result<()> {
 
     // Non-interactive mode
     if !opts.commands.is_empty() {
-        let cc = dices_rs::compiler::Compiler::new(&commands.cmds);
+        let cc = Compiler::new(&commands.cmds);
         for line in opts.commands {
             let action = cc.compile(&line);
             match action {
-                dices_rs::compiler::Action::Execute(cmd, input) => match cmd.execute(&input) {
+                Action::Execute(cmd, input) => match cmd.execute(&input) {
                     Ok(res) => println!("{}", res),
                     Err(e) => eprintln!("{}: {}", "Error".red().bold(), e),
                 },
-                dices_rs::compiler::Action::Exit => break,
-                dices_rs::compiler::Action::Error(e) => {
+                Action::Exit => break,
+                Action::Error(e) => {
                     eprintln!("{}: {}", "Error".red().bold(), e);
                 }
                 _ => {
