@@ -382,6 +382,7 @@ dependencies = [
  "serde_yml",
  "stderrlog",
  "strsim",
+ "thiserror",
 ]
 
 [[package]]
