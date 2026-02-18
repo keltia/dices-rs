@@ -4,13 +4,13 @@
 
 ## Build Status
 
-main:  [![main](https://github.com/keltia/dices-rs/actions/workflows/rust.yml/badge.svg)](https://github.com/keltia/dices-rs/actions/workflows/rust.yml)
-develop:  [![develop](https://github.com/keltia/dices-rs/actions/workflows/develop.yml/badge.svg)](https://github.com/keltia/dices-rs/actions/workflows/develop.yml)
+[![main](https://github.com/keltia/dices-rs/actions/workflows/rust.yml/badge.svg)](https://github.com/keltia/dices-rs/actions/workflows/rust.yml)
+[![develop](https://github.com/keltia/dices-rs/actions/workflows/develop.yml/badge.svg)](https://github.com/keltia/dices-rs/actions/workflows/develop.yml)
 [![dependency status](https://deps.rs/repo/github/keltia/dices-rs/status.svg)](https://deps.rs/repo/github/keltia/dices-rs)
 [![Docs](https://img.shields.io/docsrs/dices-rs)](https://docs.rs/dices-rs)
 [![GitHub release](https://img.shields.io/github/release/keltia/dices-rs.svg)](https://github.com/keltia/dices-rs/releases/)
 [![GitHub issues](https://img.shields.io/github/issues/keltia/dices-rs.svg)](https://github.com/keltia/dices-rs/issues)
-[![dices-rs: 1.56+]][Rust 1.56]
+[![dices-rs: 1.85+](https://img.shields.io/badge/Rust%20version-1.85%2B-lightgrey)][Rust 1.85]
 [![SemVer](https://img.shields.io/badge/semver-2.0.0-blue)](https://semver.org/spec/v2.0.0.html)
 [![License](https://img.shields.io/crates/l/mit)](https://opensource.org/licenses/MIT)
 
@@ -18,7 +18,7 @@ develop:  [![develop](https://github.com/keltia/dices-rs/actions/workflows/devel
 
 Usual small Dice simulator for AD&D type of games.
 
-Previous unreleased version was a straight port of the [Ruby] code in https://bitbucket.org/keltia/addfh-utils
+Previous unreleased versions were a straight port of the [Ruby] code in https://bitbucket.org/keltia/addfh-utils
 (Using [Mercurial]), rewritten before in [Go] [here](https://github.com/keltia/dices-go) and now rewritten to
 use [Rust].
 
@@ -47,41 +47,51 @@ Usage:
 ```text
 Small CLI utility to roll dices.
 
-Usage: dices [OPTIONS]
+Usage: dices [OPTIONS] [COMMANDS]...
+
+Arguments:
+  [COMMANDS]...  Commands to execute (non-interactive mode)
 
 Options:
   -A, --alias-file <ALIAS_FILE>  Alias file
   -v, --verbose...               Verbose mode
   -V, --version                  Display utility full version
-  -h, --help                     Print help information
+  -h, --help                     Print help
 ```
 
 Example:
 
 ```text
-$ cargo run --   -A ./testdata/aliases
-dices/0.9.4 by Ollivier Robert <roberto@keltia.net>
+$ dices
+dices/0.21.0 by Ollivier Robert <roberto@keltia.net>
 Small CLI utility to roll dices.
 
-Available commands:
-special macros = Macros
-builtin dice = Builtin { name: "dice", cmd: Dice }
-macro   move = Macro { name: "move", cmd: "dice 3D6 -9" }
-alias   roll = Alias { name: "roll", cmd: "dice" }
-alias   rulez = Alias { name: "rulez", cmd: "dice" }
-macro   mouv = Macro { name: "mouv", cmd: "move +7" }
-macro   doom = Macro { name: "doom", cmd: "dice 2D6" }
-builtin open = Builtin { name: "open", cmd: Open }
-special aliases = Aliases
-alias   quit = Alias { name: "quit", cmd: "exit" }
-special exit = Exit
-special list = List
+/Users/roberto/.config/dices/aliases loaded.
 
-Dices>
+Available commands:
+special aliases
+builtin dice
+macro   doom
+special exit
+special list
+alias   llist
+special macros
+macro   mouv
+macro   move
+builtin open
+alias   quit
+alias   roll
+alias   rulez
+
+>>
 ```
 
 If you specify the `-v` flag several times you increase the amount of debugging information displayed. See below for
 the format of the `aliases` file.
+
+It also supports non-interactive mode:
+
+    $ echo "dice d20" | dices 
 
 The main commands the `dices` CLI support are:
 
@@ -117,8 +127,7 @@ List all macros.
 
 ## Configuring
 
-The `dices` utility supports configuring new command or aliases through the `aliases` file, usually located
-on `$HOME/.config/dices` on UNIX systems. Windows is also supported and use the same location for now.
+The default alias file is `$HOME/.config/dices/aliases` on UNIX systems, and `$LOCALAPPDATA/dices/aliases` on Windows.
 
 ```text
 # define a new command
