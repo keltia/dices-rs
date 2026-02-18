@@ -13,13 +13,15 @@
 //! 4. Generation of an Action enum representing the command
 //!
 
+mod error;
+
 use std::collections::{HashMap, HashSet};
 
-use eyre::{eyre, bail, Result};
-use log::trace;
-use nom::{character::complete::alphanumeric1, IResult};
-
+use crate::compiler::error::CompilerError;
 use crate::engine::Command;
+use eyre::{Result, bail};
+use log::trace;
+use nom::{IResult, character::complete::alphanumeric1};
 
 /// Action is more or less the result of the compilation done by `Compiler`
 ///
@@ -120,7 +122,7 @@ impl<'a> Compiler<'a> {
         //
         let (input, name) = match parse_keyword(input) {
             Ok((input, name)) => (input.to_owned(), name.to_owned()),
-            Err(_) => return Err(eyre!("invalid command")),
+            Err(_) => return Err(CompilerError::InvalidCommand(input.to_owned()).into()),
         };
 
         trace!("name={name} with input={input}");
@@ -132,7 +134,7 @@ impl<'a> Compiler<'a> {
                 trace!("parse found {:?}", cmd);
                 Ok((input, cmd.to_owned()))
             }
-            None => return Err(eyre!("unknown command")),
+            None => return Err(CompilerError::UnknownCommand(name).into()),
         }
     }
 
@@ -141,7 +143,12 @@ impl<'a> Compiler<'a> {
     /// This is a tail recursive function, might be turned into an iterative one at some point
     /// Not sure it is worth it.
     ///
-    fn recurse(&self, input: &str, max: Option<usize>, seen: &mut HashSet<String>) -> Result<(String, Command)> {
+    fn recurse(
+        &self,
+        input: &str,
+        max: Option<usize>,
+        seen: &mut HashSet<String>,
+    ) -> Result<(String, Command)> {
         trace!("in compiler::recurse({max:?})={:?}", input);
 
         // Set default recursion max
@@ -188,7 +195,7 @@ impl<'a> Compiler<'a> {
                 trace!("list/exit, end");
                 return Ok((input, command));
             }
-            // Everything else is  an error here
+            // Everything else is an error here
             //
             _ => bail!("impossible in recurse"),
         };
@@ -196,7 +203,7 @@ impl<'a> Compiler<'a> {
         //
         max -= 1;
         if max == 0 {
-            return Err(eyre!("max recursion level reached for {}", input));
+            return Err(CompilerError::MaxRecursionReached(input.to_owned()).into());
         }
         trace!("recurse(input)={input} max={max}");
         self.recurse(&input, Some(max), seen)

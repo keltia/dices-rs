@@ -12,22 +12,25 @@
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 
-use crate::dice::result::Res;
 use colored::*;
-use eyre::{Result, eyre};
+use eyre::Result;
 use itertools::Itertools;
 use log::{error, trace};
 use rustyline::{Editor, error::ReadlineError};
 use serde::{Deserialize, Serialize};
 use strsim::levenshtein;
 
+use crate::compiler::{Action, Compiler};
+use crate::dice::result::Res;
+
 mod aliases;
 mod cmd;
 pub mod complete;
+mod error;
 mod parse;
 
-use crate::compiler::{Action, Compiler};
 pub use cmd::*;
+pub use error::*;
 pub use parse::*;
 
 /// Represents all possible command types that can be executed by the engine.
@@ -64,7 +67,7 @@ impl Command {
     pub fn execute(&self, input: &str) -> Result<Res> {
         match self {
             Command::Builtin { cmd, .. } => cmd.execute(input),
-            _ => Err(eyre!("you can't execute other than Builtin")),
+            _ => Err(EngineError::OnlyBuiltins.into()),
         }
     }
 }

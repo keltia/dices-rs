@@ -5,7 +5,7 @@
 //!
 //! XXX If anyone add core commands, do not forget to document and test.
 
-use eyre::{Result, eyre};
+use eyre::Result;
 use log::{debug, error, trace};
 use nom::Parser;
 use nom::{character::complete::space0, sequence::preceded};
@@ -16,6 +16,7 @@ use crate::dice::{
     parse::{parse_open, parse_with_bonus},
     result::Res,
 };
+use crate::engine::EngineError;
 
 /// This describe the core commands in the rolling dice engine.
 /// Everything above will be reduced (aka compiled) into executing
@@ -49,19 +50,19 @@ impl Cmd {
         let r = match self {
             Cmd::Dice => preceded(space0, parse_with_bonus).parse(input),
             Cmd::Open => preceded(space0, parse_open).parse(input),
-            _ => return Err(eyre!("invalid Cmd")),
+            _ => return Err(EngineError::InvalidCommand(input.into()).into()),
         };
         let ds = match r {
             Ok((input, ds)) => {
                 if !input.trim().is_empty() {
-                    return Err(eyre!("error parsing input"));
+                    return Err(EngineError::ParsingDiceset(input.into()).into());
                 }
                 debug!("{:?}", ds);
                 ds
             }
             Err(e) => {
                 error!("{:?}", e.to_string());
-                return Err(eyre!("error parsing input"));
+                return Err(EngineError::ParsingDiceset(input.into()).into());
             }
         };
         Ok(ds.roll())

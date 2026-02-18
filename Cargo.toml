@@ -36,18 +36,19 @@ rng = []
 [dependencies]
 eyre = "0.6"
 clap = { version = "4", features = ["derive", "cargo"] }
+colored = "3.0"
 directories = "6"
 itertools = "0.14"
 log = "0.4"
 nom = "8.0"
 rand = "0.10"
 rustyline = { version = "17.0", features = ["case_insensitive_history_search"] }
+rustyline-derive = "0.11"
 serde = { version = "1.0", features = ["derive"] }
 serde_yml = "0.0"
 stderrlog = "0.6"
-colored = "3.0"
 strsim = "0.11"
-rustyline-derive = "0.11"
+thiserror = "2.0"
 
 [dev-dependencies]
 assert_cmd = { version = "2.0", features = ["color", "color-auto"] }
