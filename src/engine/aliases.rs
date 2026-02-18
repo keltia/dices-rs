@@ -33,8 +33,9 @@ use std::path::PathBuf;
 
 use itertools::Itertools;
 use log::{debug, trace};
-use nom::Parser;
-use nom::branch::alt;
+use nom::{Parser, branch::alt};
+
+use crate::{Command, Engine, parse_alias, parse_comment};
 
 impl Engine {
     /// Load aliases as a list of `Command`.
