@@ -184,4 +184,4 @@ NOTE: Pull Request on the "main" branch will be closed without commit.
 
 [Rust]: https://rust-lang.org/
 
-[dices-rs: 1.56+]: https://img.shields.io/badge/Rust%20version-1.56%2B-lightgrey
+[Rust 1.85]: https://blog.rust-lang.org/2025/02/20/Rust-1.85.0/
