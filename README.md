@@ -37,8 +37,8 @@ or get the source and build:
     cargo bench
     cargo install --path .
 
-The binary will be installed wherever it is defined on your machine and the library in `dice` itself will be compiled
-and available. The library itself is very minimal and usable only through the CLI utility.
+The binary will be installed wherever it is defined on your machine. The library exposes the `dice`, `engine`,
+and `compiler` modules so it can be embedded in other applications, not only used through the CLI.
 
 ## Basic commands
 
@@ -74,14 +74,9 @@ builtin dice
 macro   doom
 special exit
 special list
-alias   llist
 special macros
-macro   mouv
-macro   move
 builtin open
-alias   quit
 alias   roll
-alias   rulez
 
 >>
 ```
@@ -89,9 +84,13 @@ alias   rulez
 If you specify the `-v` flag several times you increase the amount of debugging information displayed. See below for
 the format of the `aliases` file.
 
-It also supports non-interactive mode:
+It also supports non-interactive mode by passing commands as arguments:
 
-    $ echo "dice d20" | dices 
+    $ dices dice d20
+
+Multiple commands can be passed as separate arguments:
+
+    $ dices dice d20 open d8 list
 
 The main commands the `dices` CLI support are:
 
@@ -127,7 +126,8 @@ List all macros.
 
 ## Configuring
 
-The default alias file is `$HOME/.config/dices/aliases` on UNIX systems, and `$LOCALAPPDATA/dices/aliases` on Windows.
+The default alias file is `$HOME/.config/dices/aliases` on UNIX systems and the same `$HOME/.config/dices/aliases`
+path on Windows (based on the user home directory).
 
 ```text
 # define a new command
@@ -152,6 +152,27 @@ Some aliases are pre-defined at start to be useful:
 - `roll` for `dice`
 - `doom` for the special roll of `2D6`
 
+## Library API
+
+Minimal examples using the library directly:
+
+```rust
+use dices_rs::dice::{DiceSet, Rollable};
+
+let ds = DiceSet::parse("3D6 +1").expect("parse failed");
+let res = ds.roll();
+println!("{res}");
+```
+
+```rust
+use dices_rs::{Engine, compiler::Compiler};
+
+let engine = Engine::new().with(None).build();
+let compiler = Compiler::new(&engine.cmds);
+let action = compiler.compile("dice D20");
+println!("{action:?}");
+```
+
 ## TODO
 
 - Document, document and more documentation
@@ -164,6 +185,8 @@ Some aliases are pre-defined at start to be useful:
 ## Contributing
 
 Please see [CONTRIBUTING.md](CONTRIBUTING.md) for some simple rules.
+
+Architecture details are in [DESIGN.md](DESIGN.md).
 
 I use Git Flow for this package so please use something similar or the usual github workflow.
 
