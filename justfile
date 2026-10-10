@@ -5,9 +5,15 @@ set shell := ["C:\\Program Files\\Git\\bin\\sh.exe", "-c"]
 pull:
     jj git fetch --remote origin
 
+push: push-github push-codeberg
+
 # Push to github
-push:
+push-github:
     jj git push --tracked --remote origin
+
+# Push to codeberg
+push-codeberg:
+    jj git push --tracked --remote codeberg
 
 # Move changes to develop
 move:
