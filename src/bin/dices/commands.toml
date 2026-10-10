@@ -1,0 +1,12 @@
+aliases = "Aliases"
+list = "List"
+exit = "Exit"
+macros = "Macros"
+
+[dice.Builtin]
+name = "dice"
+cmd = "Dice"
+
+[open.Builtin]
+name = "open"
+cmd = "Open"

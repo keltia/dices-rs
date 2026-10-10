@@ -250,14 +250,14 @@ impl Engine {
             .join("\n")
     }
 
-    /// Build a list of `Command` from the builtin commands using a YAML file representing
+    /// Build a list of `Command` from the builtin commands using a TOML file representing
     /// the list of commands and their type
     ///
     fn builtin_commands() -> Engine {
-        trace!("builtin_commands(commands.yaml)");
+        trace!("builtin_commands(commands.toml)");
         let all: HashMap<String, Command> =
-            noyalib::from_str(include_str!("../bin/dices/commands.yaml"))
-                .expect("Invalid commands.yaml");
+            toml::from_str(include_str!("../bin/dices/commands.toml"))
+                .expect("Invalid commands.toml");
         Engine { cmds: all }
     }
 
@@ -315,7 +315,7 @@ mod tests {
     #[test]
     fn test_engine_new() {
         let all: HashMap<String, Command> =
-            noyalib::from_str(include_str!("../../testdata/builtins.yaml")).unwrap();
+            toml::from_str(include_str!("../../testdata/builtins.toml")).unwrap();
 
         let n = Engine::new();
         all.into_iter().for_each(|(name, cmd)| {
@@ -334,7 +334,7 @@ mod tests {
         }];
 
         let all: HashMap<String, Command> =
-            noyalib::from_str(include_str!("../../testdata/merged.yaml")).unwrap();
+            toml::from_str(include_str!("../../testdata/merged.toml")).unwrap();
 
         let n = n.merge(doom);
 

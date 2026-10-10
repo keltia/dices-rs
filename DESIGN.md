@@ -21,14 +21,14 @@ Parsing of dice expressions (including bonuses and open dice) is handled in `dic
 
 `Engine` owns the command registry and drives the REPL (rustyline). It:
 
-- loads builtin commands from `src/bin/dices/commands.yaml`
+- loads builtin commands from `src/bin/dices/commands.toml`
 - merges aliases/macros from `$HOME/.config/dices/aliases` (or a CLI-provided path)
 - exposes `list`, `aliases`, `macros`
 - runs the REPL loop and executes compiled actions
 
 ### Commands
 
-Commands come from `commands.yaml` and include:
+Commands come from `commands.toml` and include:
 
 - Builtins: `dice`, `open`
 - Special commands: `list`, `exit`, `aliases`, `macros`
