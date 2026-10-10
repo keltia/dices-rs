@@ -1,3 +1,6 @@
+[windows]
+set shell := ["C:\\Program Files\\Git\\bin\\sh.exe", "-c"]
+
 # Fetch from remote origin using jj
 pull:
     jj git fetch --remote origin
