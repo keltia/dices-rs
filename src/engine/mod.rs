@@ -256,7 +256,7 @@ impl Engine {
     fn builtin_commands() -> Engine {
         trace!("builtin_commands(commands.yaml)");
         let all: HashMap<String, Command> =
-            serde_yml::from_str(include_str!("../bin/dices/commands.yaml"))
+            noyalib::from_str(include_str!("../bin/dices/commands.yaml"))
                 .expect("Invalid commands.yaml");
         Engine { cmds: all }
     }
@@ -315,7 +315,7 @@ mod tests {
     #[test]
     fn test_engine_new() {
         let all: HashMap<String, Command> =
-            serde_yml::from_str(include_str!("../../testdata/builtins.yaml")).unwrap();
+            noyalib::from_str(include_str!("../../testdata/builtins.yaml")).unwrap();
 
         let n = Engine::new();
         all.into_iter().for_each(|(name, cmd)| {
@@ -334,7 +334,7 @@ mod tests {
         }];
 
         let all: HashMap<String, Command> =
-            serde_yml::from_str(include_str!("../../testdata/merged.yaml")).unwrap();
+            noyalib::from_str(include_str!("../../testdata/merged.yaml")).unwrap();
 
         let n = n.merge(doom);
 
